@@ -1,31 +1,31 @@
-word,meaning,accepted_answers,example,note,level
-increase,増加する,増える／上がる／増やす,Sales increased last year.,売上・費用・需要で頻出,600
-implement,実行する,実施する／導入する／実装する,The company implemented a new policy.,policyやplanと相性が良い,730
-provide,提供する,与える／供給する,The hotel provides free breakfast.,provide A with Bも重要,600
-require,必要とする,求める／要求する,This position requires experience.,求人や条件で頻出,600
-purchase,購入する,買う／購買する,Please keep your purchase receipt.,名詞で購入品の意味もある,600
-available,利用できる,入手可能な／空いている／対応可能な,The room is available after 3 p.m.,人にも物にも使える,600
-confirm,確認する,確かめる／承認する,Please confirm your reservation.,予約確認で頻出,600
-delay,遅れ,遅延／遅らせる,The flight was delayed due to weather.,名詞・動詞どちらも出る,600
-annual,年1回の,毎年の／年間の,The annual meeting will be held in June.,annual reportも頻出,730
-refund,返金,払い戻し／返金する,You can request a refund within 30 days.,名詞・動詞どちらも使う,600
-appointment,予約,約束／面会の約束,I have an appointment at 2 p.m.,病院や面談の予約,600
-invoice,請求書,送り状／インボイス,The invoice was sent yesterday.,ビジネス文書で頻出,730
-facility,施設,設備／機能,The new facility opened last month.,工場・会議施設など,600
-indicate,示す,指し示す／表す,The sign indicates the entrance.,資料やグラフでも使う,730
-additional,追加の,さらに多くの／別の,Additional information is required.,書類・料金で頻出,600
-reduce,減らす,削減する／低下させる,The company reduced costs.,costやwasteと相性が良い,600
-expand,拡大する,広げる／拡張する,The company plans to expand overseas.,事業拡大で頻出,730
-maintain,維持する,保つ／整備する,Please maintain a clean workspace.,状態維持・設備保守,730
-submit,提出する,送信する／差し出す,Please submit the form by Friday.,書類提出で頻出,600
-participate,参加する,加わる／出席する,Employees are encouraged to participate.,イベント・会議で頻出,600
-postpone,延期する,先延ばしにする,The meeting was postponed until Monday.,会議・予定で頻出,730
-negotiate,交渉する,話し合う／取り決める,They negotiated a new contract.,契約や価格交渉,860
-approximately,およそ,約／だいたい,The trip takes approximately two hours.,数字と一緒に出る,730
-mandatory,必須の,義務的な／強制の,Attendance is mandatory.,ルールや研修で頻出,860
-complaint,苦情,不満／クレーム,The manager handled the complaint.,顧客対応で頻出,730
-reliable,信頼できる,頼りになる／確実な,We need a reliable supplier.,人・会社・物に使う,730
-temporary,一時的な,臨時の／仮の,This is a temporary solution.,temporary positionも頻出,600
-appropriate,適切な,ふさわしい／妥当な,Please wear appropriate clothing.,服装・対応・方法で使う,730
-significant,重要な,かなりの／著しい,There was a significant increase in sales.,変化や差を強調,860
-comprehensive,包括的な,総合的な／広範囲の,The report provides a comprehensive overview.,レポートや計画で頻出,860
+word,meaning,accepted_answers,example,note,level,pos,example_ja
+increase,増加する,増える／上がる／増やす／増加／増大する／高まる／伸びる／上昇する／数が多くなる／量が増える,Sales increased last year.,売上・費用・需要で頻出,600,verb,昨年、売上が増加した。
+implement,実行する,実施する／導入する／実装する／行う／取り入れる／計画を実行する／制度を導入する／方針を実施する,The company implemented a new policy.,policyやplanと相性が良い,730,verb,その会社は新しい方針を実施した。
+provide,提供する,与える／供給する／用意する／準備する／支給する／サービスを提供する／情報を提供する,The hotel provides free breakfast.,provide A with Bも重要,600,verb,そのホテルは無料の朝食を提供している。
+require,必要とする,求める／要求する／必要である／必須とする／条件とする／経験を必要とする,This position requires experience.,求人や条件で頻出,600,verb,この職種は経験を必要とする。
+purchase,購入する,購入／買う／物を買う／商品を買う／品物を購入する／買い求める／購買する／手に入れる,Please keep your purchase receipt.,レシート関連で頻出,600,verb,購入レシートを保管してください。
+available,利用できる,入手可能な／空いている／使える／利用可能な／対応可能な／手に入る／予約できる／都合がよい,The room is available after 3 p.m.,人にも物にも使える,600,adj,その部屋は午後3時以降利用できます。
+confirm,確認する,確かめる／承認する／再確認する／予約を確認する／事実を確認する／確定する,Please confirm your reservation.,予約確認で頻出,600,verb,予約を確認してください。
+delay,遅れ,遅延／遅らせる／延期する／遅れる／遅くする／先延ばしにする,The flight was delayed due to weather.,名詞・動詞どちらも出る,600,noun/verb,天候のため飛行機が遅れた。
+annual,年1回の,毎年の／年間の／年次の／一年の／年に一度の,The annual meeting will be held in June.,annual reportも頻出,730,adj,年次会議は6月に開催される。
+refund,返金,払い戻し／返金する／払い戻す／お金を返す／返金額,You can request a refund within 30 days.,名詞・動詞どちらも使う,600,noun/verb,30日以内に返金を申請できます。
+appointment,予約,約束／面会の約束／予定／アポイント／診察予約／面談予約,I have an appointment at 2 p.m.,病院や面談の予約,600,noun,私は午後2時に予約があります。
+invoice,請求書,送り状／インボイス／請求する書類／代金請求書,The invoice was sent yesterday.,ビジネス文書で頻出,730,noun,請求書は昨日送られた。
+facility,施設,設備／機能／施設設備／建物／利用施設,The new facility opened last month.,工場・会議施設など,600,noun,新しい施設は先月オープンした。
+indicate,示す,指し示す／表す／意味する／指摘する／表示する／明らかにする,The sign indicates the entrance.,資料やグラフでも使う,730,verb,その標識は入口を示している。
+additional,追加の,さらに多くの／別の／追加的な／余分の／もう一つの,Additional information is required.,書類・料金で頻出,600,adj,追加情報が必要です。
+reduce,減らす,削減する／低下させる／少なくする／減少させる／下げる／抑える,The company reduced costs.,costやwasteと相性が良い,600,verb,その会社はコストを削減した。
+expand,拡大する,広げる／拡張する／拡大させる／展開する／事業を広げる,The company plans to expand overseas.,事業拡大で頻出,730,verb,その会社は海外に拡大する予定だ。
+maintain,維持する,保つ／整備する／管理する／継続する／保守する／状態を保つ,Please maintain a clean workspace.,状態維持・設備保守,730,verb,清潔な作業場所を維持してください。
+submit,提出する,送信する／差し出す／提出／出す／フォームを送る／書類を提出する,Please submit the form by Friday.,書類提出で頻出,600,verb,金曜日までにフォームを提出してください。
+participate,参加する,加わる／出席する／関わる／参加／イベントに参加する,Employees are encouraged to participate.,イベント・会議で頻出,600,verb,従業員は参加を勧められている。
+postpone,延期する,先延ばしにする／遅らせる／後にする／予定を延期する,The meeting was postponed until Monday.,会議・予定で頻出,730,verb,会議は月曜日まで延期された。
+negotiate,交渉する,話し合う／取り決める／協議する／契約交渉する／価格交渉する,They negotiated a new contract.,契約や価格交渉,860,verb,彼らは新しい契約について交渉した。
+approximately,およそ,約／だいたい／おおよそ／ほぼ／約〜／およそ〜,The trip takes approximately two hours.,数字と一緒に出る,730,adv,その移動はおよそ2時間かかる。
+mandatory,必須の,義務的な／強制の／必要な／必ず参加の／必修の,Attendance is mandatory.,ルールや研修で頻出,860,adj,出席は必須です。
+complaint,苦情,不満／クレーム／苦情申し立て／不平,The manager handled the complaint.,顧客対応で頻出,730,noun,マネージャーはその苦情に対応した。
+reliable,信頼できる,頼りになる／確実な／信用できる／信頼性のある,We need a reliable supplier.,人・会社・物に使う,730,adj,私たちは信頼できる供給業者が必要だ。
+temporary,一時的な,臨時の／仮の／短期の／一時的／期間限定の,This is a temporary solution.,temporary positionも頻出,600,adj,これは一時的な解決策です。
+appropriate,適切な,ふさわしい／妥当な／合った／適した／適正な,Please wear appropriate clothing.,服装・対応・方法で使う,730,adj,適切な服装をしてください。
+significant,重要な,かなりの／著しい／大きな／重要な／意味のある／相当な,There was a significant increase in sales.,変化や差を強調,860,adj,売上に大幅な増加があった。
+comprehensive,包括的な,総合的な／広範囲の／詳しい／全体的な／網羅的な,The report provides a comprehensive overview.,レポートや計画で頻出,860,adj,その報告書は包括的な概要を提供している。
