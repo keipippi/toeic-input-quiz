@@ -127,7 +127,6 @@ def judge_answer(row, answer, direction):
     user = normalize_text(answer)
     if not user:
         return {"result": "wrong", "mode": "未入力", "reason": "答えを入力してください。"}
-
     if direction == "英→日":
         corrects = split_answers(row["meaning"])
         accepts = split_answers(row["accepted_answers"])
@@ -136,7 +135,6 @@ def judge_answer(row, answer, direction):
         corrects = [str(row["word"])]
         accepts = []
         all_ok = corrects
-
     for a in corrects:
         if user == normalize_text(a):
             return {"result": "correct", "mode": "完全一致", "reason": "正解訳と完全一致しました。"}
@@ -170,8 +168,7 @@ def make_quiz_df(df, history, mode, levels):
 
 def speech_button(word: str):
     safe = html.escape(str(word), quote=True)
-    components.html(
-        f"""
+    components.html(f"""
         <button onclick="speakWord()" style="font-size:16px;padding:8px 14px;border-radius:8px;border:1px solid #ddd;cursor:pointer;">🔊 発音</button>
         <script>
         function speakWord() {{
@@ -181,15 +178,13 @@ def speech_button(word: str):
             window.speechSynthesis.speak(u);
         }}
         </script>
-        """,
-        height=45,
-    )
+    """, height=45)
 
 
 def go_next(qdf):
     st.session_state.quiz_word = random.choice(qdf["word"].tolist())
     st.session_state.last = None
-    st.session_state.answer_input = ""
+    st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
     st.rerun()
 
 
@@ -237,8 +232,8 @@ with st.sidebar:
 
 history = load_history(user_name)
 qdf = make_quiz_df(df, history, mode, levels)
-if mode == "ランダム10問":
-    qdf = qdf.sample(min(10, len(qdf))) if len(qdf) else qdf
+if mode == "ランダム10問" and len(qdf):
+    qdf = qdf.sample(min(10, len(qdf)))
 if qdf.empty:
     st.warning("出題できる単語がありません。モードかレベルを変えてください。")
     st.stop()
@@ -247,8 +242,8 @@ if "quiz_word" not in st.session_state or st.session_state.quiz_word not in qdf[
     st.session_state.quiz_word = random.choice(qdf["word"].tolist())
 if "last" not in st.session_state:
     st.session_state.last = None
-if "answer_input" not in st.session_state:
-    st.session_state.answer_input = ""
+if "answer_version" not in st.session_state:
+    st.session_state.answer_version = 0
 
 row = qdf[qdf["word"] == st.session_state.quiz_word].iloc[0]
 actual_direction = random.choice(["英→日", "日→英"]) if direction == "ランダム" else direction
@@ -269,8 +264,9 @@ with left:
         st.caption(f"発音記号: {ipa}")
     st.caption(f"User: {user_name} / Level: {row['level']} / 品詞: {row['pos']} / Direction: {actual_direction}")
 
+    answer_key = f"answer_input_{st.session_state.answer_version}"
     with st.form("answer_form"):
-        ans = st.text_input("答え", key="answer_input", placeholder=placeholder)
+        ans = st.text_input("答え", key=answer_key, placeholder=placeholder)
         button_label = "次の問題へ" if st.session_state.last else "判定する"
         submitted = st.form_submit_button(button_label)
 
@@ -315,7 +311,7 @@ with left:
             if path.exists():
                 path.unlink()
             st.session_state.last = None
-            st.session_state.answer_input = ""
+            st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
             st.rerun()
 
 with right:
