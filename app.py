@@ -13,8 +13,27 @@ APP_DIR = Path(__file__).parent
 WORDS_PATH = APP_DIR / "words.csv"
 HISTORY_PATH = APP_DIR / "history.csv"
 REVIEW_STEPS = [1, 3, 7, 14, 30]
-
 REQUIRED_COLUMNS = ["word", "meaning", "accepted_answers", "example", "note", "level", "pos", "example_ja", "ipa"]
+LEVEL_ORDER = ["600", "700", "800"]
+
+
+def normalize_level(value) -> str:
+    s = str(value).strip()
+    if s in ["600", "600点", "TOEIC600"]:
+        return "600"
+    if s in ["700", "730", "730-860", "730〜860", "730–860", "TOEIC730"]:
+        return "700"
+    if s in ["800", "860", "860+", "900", "900+", "TOEIC860"]:
+        return "800"
+    try:
+        n = int(float(s))
+        if n < 700:
+            return "600"
+        if n < 800:
+            return "700"
+        return "800"
+    except Exception:
+        return "600"
 
 
 def normalize_text(text: str) -> str:
@@ -36,8 +55,7 @@ def split_answers(text: str) -> list[str]:
 
 @st.cache_data
 def load_base_words() -> pd.DataFrame:
-    df = pd.read_csv(WORDS_PATH)
-    return prepare_words(df)
+    return prepare_words(pd.read_csv(WORDS_PATH))
 
 
 def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
@@ -45,7 +63,7 @@ def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
     for col in REQUIRED_COLUMNS:
         if col not in df.columns:
             df[col] = ""
-    df["level"] = df["level"].astype(str)
+    df["level"] = df["level"].apply(normalize_level)
     df = df[REQUIRED_COLUMNS]
     return df.dropna(subset=["word", "meaning"])
 
@@ -103,29 +121,13 @@ def judge_answer(row, answer, direction):
     for a in corrects:
         if user == normalize_text(a):
             return {"result": "correct", "mode": "完全一致", "reason": "正解訳と完全一致しました。"}
-
     for a in accepts:
         if user == normalize_text(a):
             return {"result": "correct", "mode": "類義語一致", "reason": f"『{a}』は許容訳として登録されています。"}
-
     for a in all_ok:
         aa = normalize_text(a)
         if len(user) >= 2 and len(aa) >= 2 and (user in aa or aa in user):
             return {"result": "almost", "mode": "部分一致", "reason": f"『{a}』に近いですが、少し短い/広い表現です。"}
-
-    near_words = {
-        "入手": ["purchase", "available"],
-        "導入": ["implement"],
-        "必要": ["require", "mandatory"],
-        "確認": ["confirm"],
-        "延期": ["delay", "postpone"],
-        "減少": ["reduce"],
-        "増加": ["increase"],
-    }
-    for key, words in near_words.items():
-        if key in user and row["word"] in words:
-            return {"result": "almost", "mode": "近い表現", "reason": f"『{key}』は近い表現ですが、正解例も確認しましょう。"}
-
     return {"result": "wrong", "mode": "辞書判定", "reason": "登録されている正解・類義語とは一致しませんでした。"}
 
 
@@ -149,8 +151,7 @@ def make_quiz_df(df, history, mode, levels):
 
 def speech_button(word: str):
     safe = html.escape(str(word), quote=True)
-    components.html(
-        f"""
+    components.html(f"""
         <button onclick="speakWord()" style="font-size:16px;padding:8px 14px;border-radius:8px;border:1px solid #ddd;cursor:pointer;">🔊 発音</button>
         <script>
         function speakWord() {{
@@ -160,9 +161,7 @@ def speech_button(word: str):
             window.speechSynthesis.speak(u);
         }}
         </script>
-        """,
-        height=45,
-    )
+        """, height=45)
 
 
 st.set_page_config(page_title="TOEIC入力式単語練習", page_icon="📘", layout="wide")
@@ -186,14 +185,10 @@ with st.sidebar:
     else:
         df = base_df.copy()
 
-    st.download_button(
-        "CSVテンプレートをダウンロード",
-        data=",".join(REQUIRED_COLUMNS) + "\n",
-        file_name="toeic_words_template.csv",
-        mime="text/csv",
-    )
+    st.download_button("CSVテンプレートをダウンロード", data=",".join(REQUIRED_COLUMNS) + "\n", file_name="toeic_words_template.csv", mime="text/csv")
 
-    levels = st.multiselect("レベル", sorted(df["level"].astype(str).unique()), default=sorted(df["level"].astype(str).unique()))
+    available_levels = [lv for lv in LEVEL_ORDER if lv in set(df["level"].astype(str))]
+    levels = st.multiselect("レベル", available_levels, default=available_levels)
     direction = st.radio("出題方向", ["英→日", "日→英", "ランダム"], index=0)
     mode = st.radio("出題モード", ["全単語", "ランダム10問", "間違えた単語だけ", "復習期限の単語"], index=0)
     st.success("AI課金なしで使えます")
@@ -219,10 +214,10 @@ with left:
     if actual_direction == "英→日":
         st.markdown(f"## **{row['word']}**")
         speech_button(row["word"])
-        placeholder = "例：増加する"
+        placeholder = "例：購入する"
     else:
         st.markdown(f"## **{row['meaning']}**")
-        placeholder = "例：increase"
+        placeholder = "例：purchase"
 
     ipa = str(row.get("ipa", ""))
     if ipa and ipa != "nan":
@@ -285,14 +280,9 @@ with right:
 st.divider()
 st.subheader("苦手ランキング")
 if len(history):
-    g = history.groupby("word").agg(
-        attempts=("result", "count"),
-        correct=("result", lambda s: (s == "correct").sum()),
-        wrong=("result", lambda s: (s != "correct").sum()),
-    ).reset_index()
+    g = history.groupby("word").agg(attempts=("result", "count"), correct=("result", lambda s: (s == "correct").sum()), wrong=("result", lambda s: (s != "correct").sum())).reset_index()
     g["正解率"] = (g["correct"] / g["attempts"] * 100).round(1)
-    g = g.sort_values(["正解率", "attempts"], ascending=[True, False])
-    st.dataframe(g, use_container_width=True, hide_index=True)
+    st.dataframe(g.sort_values(["正解率", "attempts"], ascending=[True, False]), use_container_width=True, hide_index=True)
 else:
     st.write("まだデータがありません。")
 
