@@ -52,6 +52,28 @@ def load_history() -> pd.DataFrame:
     return pd.DataFrame(columns=cols)
 
 
+def get_api_key():
+    try:
+        return str(st.secrets["OPENAI_API_KEY"]).strip().strip('"').strip("'")
+    except Exception:
+        return ""
+
+
+def api_key_problem() -> str:
+    key = get_api_key()
+    if not key:
+        return "SecretsにOPENAI_API_KEYが設定されていません。"
+    try:
+        key.encode("ascii")
+    except UnicodeEncodeError:
+        return "OPENAI_API_KEYに日本語などの全角文字が入っています。実際のAPIキーだけを貼ってください。"
+    if "実際" in key or "あなた" in key or "xxxx" in key.lower():
+        return "OPENAI_API_KEYが仮の文字列のままです。実際のAPIキーに置き換えてください。"
+    if not key.startswith("sk-"):
+        return "OPENAI_API_KEYは通常 sk- から始まります。貼り間違いを確認してください。"
+    return ""
+
+
 def next_review_date(word: str, result: str, history: pd.DataFrame) -> str:
     today = datetime.now().date()
     if result == "wrong":
@@ -99,20 +121,13 @@ def local_judge(row, answer, direction):
     return None
 
 
-def get_api_key():
-    try:
-        return st.secrets["OPENAI_API_KEY"]
-    except Exception:
-        return ""
-
-
 def ai_judge(row, answer, direction, model):
-    api_key = get_api_key()
-    if not api_key:
-        return {"result": "wrong", "mode": "AI判定なし", "reason": "SecretsにOPENAI_API_KEYが未設定です。"}
+    problem = api_key_problem()
+    if problem:
+        return {"result": "wrong", "mode": "AI判定なし", "reason": problem}
     if OpenAI is None:
         return {"result": "wrong", "mode": "AI判定なし", "reason": "openaiパッケージが使えません。"}
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=get_api_key())
     prompt = f"""
 あなたはTOEIC単語学習アプリの採点者です。
 方向: {direction}
@@ -144,14 +159,16 @@ JSONだけで返してください。
         d = json.loads(res.output_text)
         return {"result": d["result"], "mode": "AI判定", "reason": f"{d['reason']} 正解例: {d['better_answer']}"}
     except Exception as e:
-        return {"result": "wrong", "mode": "AI判定エラー", "reason": str(e)}
+        return {"result": "wrong", "mode": "AI判定エラー", "reason": f"APIキー・課金設定・モデル名を確認してください。詳細: {e}"}
 
 
 def ai_tutor(row, answer, judgement, direction, model):
-    api_key = get_api_key()
-    if not api_key or OpenAI is None:
-        return "AI解説を使うにはSecretsにOPENAI_API_KEYを設定してください。"
-    client = OpenAI(api_key=api_key)
+    problem = api_key_problem()
+    if problem:
+        return problem
+    if OpenAI is None:
+        return "openaiパッケージが使えません。"
+    client = OpenAI(api_key=get_api_key())
     prompt = f"""
 TOEIC単語の家庭教師として、短くわかりやすく日本語で解説してください。
 方向: {direction}
@@ -167,7 +184,7 @@ TOEIC単語の家庭教師として、短くわかりやすく日本語で解説
         res = client.responses.create(model=model, input=prompt)
         return res.output_text
     except Exception as e:
-        return f"AI解説でエラー: {e}"
+        return f"APIキー・課金設定・モデル名を確認してください。詳細: {e}"
 
 
 def label(r):
@@ -203,7 +220,10 @@ with st.sidebar:
     use_ai = st.toggle("AI判定を使う", value=True)
     use_tutor = st.toggle("AI家庭教師解説", value=True)
     model = st.text_input("AIモデル", value="gpt-4.1-mini")
-    st.write("AI:", "有効" if get_api_key() else "Secrets未設定")
+    problem = api_key_problem()
+    st.write("AI:", "有効" if not problem else "未設定/要確認")
+    if problem:
+        st.warning(problem)
 
 qdf = make_quiz_df(df, history, mode, levels)
 if mode == "ランダム10問":
