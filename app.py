@@ -11,7 +11,6 @@ import streamlit.components.v1 as components
 
 APP_DIR = Path(__file__).parent
 WORDS_PATH = APP_DIR / "words.csv"
-HISTORY_PATH = APP_DIR / "history.csv"
 REVIEW_STEPS = [1, 3, 7, 14, 30]
 REQUIRED_COLUMNS = ["word", "meaning", "accepted_answers", "example", "note", "level", "pos", "example_ja", "ipa"]
 LEVEL_ORDER = ["600", "700", "800"]
@@ -21,6 +20,16 @@ LEVEL_PRESETS = {
     "全部": ["600", "700", "800"],
     "手動で選ぶ": [],
 }
+
+
+def safe_user_id(name: str) -> str:
+    name = unicodedata.normalize("NFKC", str(name)).strip()
+    name = re.sub(r"[^0-9A-Za-zぁ-んァ-ン一-龥_-]+", "_", name)
+    return name[:40] if name else "guest"
+
+
+def history_path(user_name: str) -> Path:
+    return APP_DIR / f"history_{safe_user_id(user_name)}.csv"
 
 
 def normalize_level(value) -> str:
@@ -59,11 +68,6 @@ def split_answers(text: str) -> list[str]:
     return [p.strip() for p in re.split(r"[、，,／/;；|｜]", str(text)) if p.strip()]
 
 
-@st.cache_data
-def load_base_words() -> pd.DataFrame:
-    return prepare_words(pd.read_csv(WORDS_PATH))
-
-
 def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     for col in REQUIRED_COLUMNS:
@@ -71,16 +75,24 @@ def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = ""
     df["level"] = df["level"].apply(normalize_level)
     df = df[REQUIRED_COLUMNS]
-    return df.dropna(subset=["word", "meaning"])
+    df = df.dropna(subset=["word", "meaning"])
+    df["word"] = df["word"].astype(str).str.strip()
+    return df[df["word"] != ""]
 
 
-def load_history() -> pd.DataFrame:
-    cols = ["timestamp", "word", "direction", "user_answer", "result", "mode", "reason", "next_review"]
-    if HISTORY_PATH.exists():
-        df = pd.read_csv(HISTORY_PATH)
+@st.cache_data
+def load_base_words() -> pd.DataFrame:
+    return prepare_words(pd.read_csv(WORDS_PATH))
+
+
+def load_history(user_name: str) -> pd.DataFrame:
+    cols = ["timestamp", "user", "word", "direction", "user_answer", "result", "mode", "reason", "next_review"]
+    path = history_path(user_name)
+    if path.exists():
+        df = pd.read_csv(path)
         for c in cols:
             if c not in df.columns:
-                df[c] = ""
+                df[c] = user_name if c == "user" else ""
         return df[cols]
     return pd.DataFrame(columns=cols)
 
@@ -96,9 +108,10 @@ def next_review_date(word: str, result: str, history: pd.DataFrame) -> str:
     return str(today + timedelta(days=days))
 
 
-def save_history(word, direction, user_answer, result, mode, reason, history):
+def save_history(user_name, word, direction, user_answer, result, mode, reason, history):
     row = pd.DataFrame([{
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "user": user_name,
         "word": word,
         "direction": direction,
         "user_answer": user_answer,
@@ -107,7 +120,7 @@ def save_history(word, direction, user_answer, result, mode, reason, history):
         "reason": reason,
         "next_review": next_review_date(word, result, history),
     }])
-    pd.concat([history, row], ignore_index=True).to_csv(HISTORY_PATH, index=False)
+    pd.concat([history, row], ignore_index=True).to_csv(history_path(user_name), index=False)
 
 
 def judge_answer(row, answer, direction):
@@ -157,7 +170,8 @@ def make_quiz_df(df, history, mode, levels):
 
 def speech_button(word: str):
     safe = html.escape(str(word), quote=True)
-    components.html(f"""
+    components.html(
+        f"""
         <button onclick="speakWord()" style="font-size:16px;padding:8px 14px;border-radius:8px;border:1px solid #ddd;cursor:pointer;">🔊 発音</button>
         <script>
         function speakWord() {{
@@ -167,17 +181,31 @@ def speech_button(word: str):
             window.speechSynthesis.speak(u);
         }}
         </script>
-        """, height=45)
+        """,
+        height=45,
+    )
+
+
+def go_next(qdf):
+    st.session_state.quiz_word = random.choice(qdf["word"].tolist())
+    st.session_state.last = None
+    st.session_state.next_enter = ""
+    st.rerun()
 
 
 st.set_page_config(page_title="TOEIC入力式単語練習", page_icon="📘", layout="wide")
 st.title("📘 TOEIC入力式単語練習")
-st.caption("無料版：入力式・類義語辞書判定・英日/日英・忘却曲線復習・苦手ランキング・発音ボタン対応")
+st.caption("入力式・ユーザー別成績・英日/日英・忘却曲線復習・発音ボタン対応")
 
 base_df = load_base_words()
-history = load_history()
 
 with st.sidebar:
+    st.header("ユーザー")
+    user_name = st.text_input("ユーザー名", value=st.session_state.get("user_name", "Keishi"), placeholder="例：Keishi / Taro")
+    user_name = safe_user_id(user_name)
+    st.session_state.user_name = user_name
+    st.caption(f"現在のユーザー: {user_name}")
+
     st.header("設定")
     uploaded_files = st.file_uploader("単語CSVを追加（複数可）", type=["csv"], accept_multiple_files=True)
     dfs = [base_df]
@@ -190,10 +218,8 @@ with st.sidebar:
                 loaded_count += len(user_df)
             except Exception as e:
                 st.error(f"{uploaded.name} を読み込めませんでした: {e}")
-        df = pd.concat(dfs, ignore_index=True).drop_duplicates(subset=["word"], keep="last")
         st.success(f"{len(uploaded_files)}個のCSVから合計 {loaded_count} 語を読み込みました")
-    else:
-        df = base_df.copy()
+    df = pd.concat(dfs, ignore_index=True).drop_duplicates(subset=["word"], keep="last")
 
     st.download_button("CSVテンプレートをダウンロード", data=",".join(REQUIRED_COLUMNS) + "\n", file_name="toeic_words_template.csv", mime="text/csv")
 
@@ -207,8 +233,9 @@ with st.sidebar:
 
     direction = st.radio("出題方向", ["英→日", "日→英", "ランダム"], index=0)
     mode = st.radio("出題モード", ["全単語", "ランダム10問", "間違えた単語だけ", "復習期限の単語"], index=0)
-    st.success("AI課金なしで使えます")
+    st.success(f"読み込み語数: {len(df)}語")
 
+history = load_history(user_name)
 qdf = make_quiz_df(df, history, mode, levels)
 if mode == "ランダム10問":
     qdf = qdf.sample(min(10, len(qdf))) if len(qdf) else qdf
@@ -220,6 +247,8 @@ if "quiz_word" not in st.session_state or st.session_state.quiz_word not in qdf[
     st.session_state.quiz_word = random.choice(qdf["word"].tolist())
 if "last" not in st.session_state:
     st.session_state.last = None
+if "next_enter" not in st.session_state:
+    st.session_state.next_enter = ""
 
 row = qdf[qdf["word"] == st.session_state.quiz_word].iloc[0]
 actual_direction = random.choice(["英→日", "日→英"]) if direction == "ランダム" else direction
@@ -238,7 +267,7 @@ with left:
     ipa = str(row.get("ipa", ""))
     if ipa and ipa != "nan":
         st.caption(f"発音記号: {ipa}")
-    st.caption(f"Level: {row['level']} / 品詞: {row['pos']} / Direction: {actual_direction}")
+    st.caption(f"User: {user_name} / Level: {row['level']} / 品詞: {row['pos']} / Direction: {actual_direction}")
 
     with st.form("answer_form"):
         ans = st.text_input("答え", placeholder=placeholder)
@@ -246,9 +275,9 @@ with left:
 
     if submitted:
         judge = judge_answer(row, ans, actual_direction)
-        save_history(row["word"], actual_direction, ans, judge["result"], judge["mode"], judge["reason"], history)
+        save_history(user_name, row["word"], actual_direction, ans, judge["result"], judge["mode"], judge["reason"], history)
         st.session_state.last = {"judge": judge, "answer": ans}
-        history = load_history()
+        history = load_history(user_name)
 
     if st.session_state.last:
         j = st.session_state.last["judge"]
@@ -262,6 +291,12 @@ with left:
         st.write(f"**理由:** {j['reason']}")
         st.info(f"英単語: {row['word']} / 意味: {row['meaning']}")
         st.write(f"**許容表現:** {row['accepted_answers']}")
+        st.caption("下の入力欄でEnterを押すと次の問題へ進めます。")
+        with st.form("next_form"):
+            st.text_input("次へ", key="next_enter", placeholder="Enterで次へ")
+            next_submitted = st.form_submit_button("次の問題へ")
+        if next_submitted:
+            go_next(qdf)
         with st.expander("例文・メモ"):
             st.write(row["example"])
             st.write(row["example_ja"])
@@ -270,21 +305,21 @@ with left:
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("次の問題"):
-            st.session_state.quiz_word = random.choice(qdf["word"].tolist())
-            st.session_state.last = None
-            st.rerun()
+            go_next(qdf)
     with c2:
         if st.button("答えを見る"):
             st.info(f"英単語: {row['word']} / 意味: {row['meaning']} / 許容訳: {row['accepted_answers']}")
     with c3:
-        if st.button("履歴リセット"):
-            if HISTORY_PATH.exists():
-                HISTORY_PATH.unlink()
+        if st.button("このユーザーの履歴リセット"):
+            path = history_path(user_name)
+            if path.exists():
+                path.unlink()
             st.session_state.last = None
             st.rerun()
 
 with right:
     st.subheader("成績")
+    st.caption(f"ユーザー: {user_name}")
     if len(history) == 0:
         st.write("まだ履歴はありません。")
     else:
@@ -296,7 +331,11 @@ with right:
 st.divider()
 st.subheader("苦手ランキング")
 if len(history):
-    g = history.groupby("word").agg(attempts=("result", "count"), correct=("result", lambda s: (s == "correct").sum()), wrong=("result", lambda s: (s != "correct").sum())).reset_index()
+    g = history.groupby("word").agg(
+        attempts=("result", "count"),
+        correct=("result", lambda s: (s == "correct").sum()),
+        wrong=("result", lambda s: (s != "correct").sum()),
+    ).reset_index()
     g["正解率"] = (g["correct"] / g["attempts"] * 100).round(1)
     st.dataframe(g.sort_values(["正解率", "attempts"], ascending=[True, False]), use_container_width=True, hide_index=True)
 else:
