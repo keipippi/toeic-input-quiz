@@ -1,3 +1,4 @@
+import html
 import random
 import re
 import unicodedata
@@ -6,11 +7,14 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 APP_DIR = Path(__file__).parent
 WORDS_PATH = APP_DIR / "words.csv"
 HISTORY_PATH = APP_DIR / "history.csv"
 REVIEW_STEPS = [1, 3, 7, 14, 30]
+
+REQUIRED_COLUMNS = ["word", "meaning", "accepted_answers", "example", "note", "level", "pos", "example_ja", "ipa"]
 
 
 def normalize_text(text: str) -> str:
@@ -31,12 +35,19 @@ def split_answers(text: str) -> list[str]:
 
 
 @st.cache_data
-def load_words() -> pd.DataFrame:
+def load_base_words() -> pd.DataFrame:
     df = pd.read_csv(WORDS_PATH)
-    for col in ["level", "pos", "example_ja"]:
+    return prepare_words(df)
+
+
+def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    for col in REQUIRED_COLUMNS:
         if col not in df.columns:
             df[col] = ""
-    return df
+    df["level"] = df["level"].astype(str)
+    df = df[REQUIRED_COLUMNS]
+    return df.dropna(subset=["word", "meaning"])
 
 
 def load_history() -> pd.DataFrame:
@@ -102,7 +113,6 @@ def judge_answer(row, answer, direction):
         if len(user) >= 2 and len(aa) >= 2 and (user in aa or aa in user):
             return {"result": "almost", "mode": "部分一致", "reason": f"『{a}』に近いですが、少し短い/広い表現です。"}
 
-    # 明らかな近似語を少し拾う
     near_words = {
         "入手": ["purchase", "available"],
         "導入": ["implement"],
@@ -137,15 +147,52 @@ def make_quiz_df(df, history, mode, levels):
     return q
 
 
+def speech_button(word: str):
+    safe = html.escape(str(word), quote=True)
+    components.html(
+        f"""
+        <button onclick="speakWord()" style="font-size:16px;padding:8px 14px;border-radius:8px;border:1px solid #ddd;cursor:pointer;">🔊 発音</button>
+        <script>
+        function speakWord() {{
+            const u = new SpeechSynthesisUtterance("{safe}");
+            u.lang = "en-US";
+            u.rate = 0.85;
+            window.speechSynthesis.speak(u);
+        }}
+        </script>
+        """,
+        height=45,
+    )
+
+
 st.set_page_config(page_title="TOEIC入力式単語練習", page_icon="📘", layout="wide")
 st.title("📘 TOEIC入力式単語練習")
-st.caption("無料版：入力式・類義語辞書判定・英日/日英・忘却曲線復習・苦手ランキング対応")
+st.caption("無料版：入力式・類義語辞書判定・英日/日英・忘却曲線復習・苦手ランキング・発音ボタン対応")
 
-df = load_words()
+base_df = load_base_words()
 history = load_history()
 
 with st.sidebar:
     st.header("設定")
+    uploaded = st.file_uploader("単語CSVを追加", type=["csv"])
+    if uploaded is not None:
+        try:
+            user_df = prepare_words(pd.read_csv(uploaded))
+            df = pd.concat([base_df, user_df], ignore_index=True).drop_duplicates(subset=["word"], keep="last")
+            st.success(f"CSVから {len(user_df)} 語を読み込みました")
+        except Exception as e:
+            st.error(f"CSVを読み込めませんでした: {e}")
+            df = base_df.copy()
+    else:
+        df = base_df.copy()
+
+    st.download_button(
+        "CSVテンプレートをダウンロード",
+        data=",".join(REQUIRED_COLUMNS) + "\n",
+        file_name="toeic_words_template.csv",
+        mime="text/csv",
+    )
+
     levels = st.multiselect("レベル", sorted(df["level"].astype(str).unique()), default=sorted(df["level"].astype(str).unique()))
     direction = st.radio("出題方向", ["英→日", "日→英", "ランダム"], index=0)
     mode = st.radio("出題モード", ["全単語", "ランダム10問", "間違えた単語だけ", "復習期限の単語"], index=0)
@@ -171,10 +218,15 @@ with left:
     st.subheader("問題")
     if actual_direction == "英→日":
         st.markdown(f"## **{row['word']}**")
+        speech_button(row["word"])
         placeholder = "例：増加する"
     else:
         st.markdown(f"## **{row['meaning']}**")
         placeholder = "例：increase"
+
+    ipa = str(row.get("ipa", ""))
+    if ipa and ipa != "nan":
+        st.caption(f"発音記号: {ipa}")
     st.caption(f"Level: {row['level']} / 品詞: {row['pos']} / Direction: {actual_direction}")
 
     with st.form("answer_form"):
