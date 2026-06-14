@@ -189,7 +189,7 @@ def speech_button(word: str):
 def go_next(qdf):
     st.session_state.quiz_word = random.choice(qdf["word"].tolist())
     st.session_state.last = None
-    st.session_state.next_enter = ""
+    st.session_state.answer_input = ""
     st.rerun()
 
 
@@ -247,8 +247,8 @@ if "quiz_word" not in st.session_state or st.session_state.quiz_word not in qdf[
     st.session_state.quiz_word = random.choice(qdf["word"].tolist())
 if "last" not in st.session_state:
     st.session_state.last = None
-if "next_enter" not in st.session_state:
-    st.session_state.next_enter = ""
+if "answer_input" not in st.session_state:
+    st.session_state.answer_input = ""
 
 row = qdf[qdf["word"] == st.session_state.quiz_word].iloc[0]
 actual_direction = random.choice(["英→日", "日→英"]) if direction == "ランダム" else direction
@@ -270,14 +270,19 @@ with left:
     st.caption(f"User: {user_name} / Level: {row['level']} / 品詞: {row['pos']} / Direction: {actual_direction}")
 
     with st.form("answer_form"):
-        ans = st.text_input("答え", placeholder=placeholder)
-        submitted = st.form_submit_button("判定する")
+        ans = st.text_input("答え", key="answer_input", placeholder=placeholder)
+        button_label = "次の問題へ" if st.session_state.last else "判定する"
+        submitted = st.form_submit_button(button_label)
 
     if submitted:
-        judge = judge_answer(row, ans, actual_direction)
-        save_history(user_name, row["word"], actual_direction, ans, judge["result"], judge["mode"], judge["reason"], history)
-        st.session_state.last = {"judge": judge, "answer": ans}
-        history = load_history(user_name)
+        if st.session_state.last:
+            go_next(qdf)
+        else:
+            judge = judge_answer(row, ans, actual_direction)
+            save_history(user_name, row["word"], actual_direction, ans, judge["result"], judge["mode"], judge["reason"], history)
+            st.session_state.last = {"judge": judge, "answer": ans}
+            history = load_history(user_name)
+            st.rerun()
 
     if st.session_state.last:
         j = st.session_state.last["judge"]
@@ -291,12 +296,7 @@ with left:
         st.write(f"**理由:** {j['reason']}")
         st.info(f"英単語: {row['word']} / 意味: {row['meaning']}")
         st.write(f"**許容表現:** {row['accepted_answers']}")
-        st.caption("下の入力欄でEnterを押すと次の問題へ進めます。")
-        with st.form("next_form"):
-            st.text_input("次へ", key="next_enter", placeholder="Enterで次へ")
-            next_submitted = st.form_submit_button("次の問題へ")
-        if next_submitted:
-            go_next(qdf)
+        st.caption("同じボタンをもう一度押すと次の問題へ進みます。")
         with st.expander("例文・メモ"):
             st.write(row["example"])
             st.write(row["example_ja"])
@@ -315,6 +315,7 @@ with left:
             if path.exists():
                 path.unlink()
             st.session_state.last = None
+            st.session_state.answer_input = ""
             st.rerun()
 
 with right:
