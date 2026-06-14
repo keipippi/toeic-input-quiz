@@ -15,6 +15,12 @@ HISTORY_PATH = APP_DIR / "history.csv"
 REVIEW_STEPS = [1, 3, 7, 14, 30]
 REQUIRED_COLUMNS = ["word", "meaning", "accepted_answers", "example", "note", "level", "pos", "example_ja", "ipa"]
 LEVEL_ORDER = ["600", "700", "800"]
+LEVEL_PRESETS = {
+    "600だけ": ["600"],
+    "600+700": ["600", "700"],
+    "全部": ["600", "700", "800"],
+    "手動で選ぶ": [],
+}
 
 
 def normalize_level(value) -> str:
@@ -173,22 +179,32 @@ history = load_history()
 
 with st.sidebar:
     st.header("設定")
-    uploaded = st.file_uploader("単語CSVを追加", type=["csv"])
-    if uploaded is not None:
-        try:
-            user_df = prepare_words(pd.read_csv(uploaded))
-            df = pd.concat([base_df, user_df], ignore_index=True).drop_duplicates(subset=["word"], keep="last")
-            st.success(f"CSVから {len(user_df)} 語を読み込みました")
-        except Exception as e:
-            st.error(f"CSVを読み込めませんでした: {e}")
-            df = base_df.copy()
+    uploaded_files = st.file_uploader("単語CSVを追加（複数可）", type=["csv"], accept_multiple_files=True)
+    dfs = [base_df]
+    loaded_count = 0
+    if uploaded_files:
+        for uploaded in uploaded_files:
+            try:
+                user_df = prepare_words(pd.read_csv(uploaded))
+                dfs.append(user_df)
+                loaded_count += len(user_df)
+            except Exception as e:
+                st.error(f"{uploaded.name} を読み込めませんでした: {e}")
+        df = pd.concat(dfs, ignore_index=True).drop_duplicates(subset=["word"], keep="last")
+        st.success(f"{len(uploaded_files)}個のCSVから合計 {loaded_count} 語を読み込みました")
     else:
         df = base_df.copy()
 
     st.download_button("CSVテンプレートをダウンロード", data=",".join(REQUIRED_COLUMNS) + "\n", file_name="toeic_words_template.csv", mime="text/csv")
 
     available_levels = [lv for lv in LEVEL_ORDER if lv in set(df["level"].astype(str))]
-    levels = st.multiselect("レベル", available_levels, default=available_levels)
+    preset = st.radio("レベル選択", ["600だけ", "600+700", "全部", "手動で選ぶ"], index=0)
+    if preset == "手動で選ぶ":
+        levels = st.multiselect("レベル", available_levels, default=available_levels)
+    else:
+        levels = [lv for lv in LEVEL_PRESETS[preset] if lv in available_levels]
+        st.caption("選択中: " + (" / ".join(levels) if levels else "該当レベルなし"))
+
     direction = st.radio("出題方向", ["英→日", "日→英", "ランダム"], index=0)
     mode = st.radio("出題モード", ["全単語", "ランダム10問", "間違えた単語だけ", "復習期限の単語"], index=0)
     st.success("AI課金なしで使えます")
