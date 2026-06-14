@@ -1,4 +1,3 @@
-import json
 import random
 import re
 import unicodedata
@@ -7,11 +6,6 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-
-try:
-    from openai import OpenAI
-except Exception:
-    OpenAI = None
 
 APP_DIR = Path(__file__).parent
 WORDS_PATH = APP_DIR / "words.csv"
@@ -23,8 +17,11 @@ def normalize_text(text: str) -> str:
     if text is None:
         return ""
     text = unicodedata.normalize("NFKC", str(text)).strip().lower()
-    text = re.sub(r"[、，,／/・\s]+", "", text)
-    return text.replace("すること", "する")
+    text = re.sub(r"[、，,／/・\s\n\t]+", "", text)
+    text = text.replace("すること", "する")
+    text = text.replace("です", "").replace("ます", "")
+    text = text.replace("を", "").replace("が", "").replace("に", "").replace("へ", "")
+    return text
 
 
 def split_answers(text: str) -> list[str]:
@@ -36,8 +33,9 @@ def split_answers(text: str) -> list[str]:
 @st.cache_data
 def load_words() -> pd.DataFrame:
     df = pd.read_csv(WORDS_PATH)
-    if "level" not in df.columns:
-        df["level"] = "未設定"
+    for col in ["level", "pos", "example_ja"]:
+        if col not in df.columns:
+            df[col] = ""
     return df
 
 
@@ -50,28 +48,6 @@ def load_history() -> pd.DataFrame:
                 df[c] = ""
         return df[cols]
     return pd.DataFrame(columns=cols)
-
-
-def get_api_key():
-    try:
-        return str(st.secrets["OPENAI_API_KEY"]).strip().strip('"').strip("'")
-    except Exception:
-        return ""
-
-
-def api_key_problem() -> str:
-    key = get_api_key()
-    if not key:
-        return "SecretsにOPENAI_API_KEYが設定されていません。"
-    try:
-        key.encode("ascii")
-    except UnicodeEncodeError:
-        return "OPENAI_API_KEYに日本語などの全角文字が入っています。実際のAPIキーだけを貼ってください。"
-    if "実際" in key or "あなた" in key or "xxxx" in key.lower():
-        return "OPENAI_API_KEYが仮の文字列のままです。実際のAPIキーに置き換えてください。"
-    if not key.startswith("sk-"):
-        return "OPENAI_API_KEYは通常 sk- から始まります。貼り間違いを確認してください。"
-    return ""
 
 
 def next_review_date(word: str, result: str, history: pd.DataFrame) -> str:
@@ -96,95 +72,51 @@ def save_history(word, direction, user_answer, result, mode, reason, history):
         "reason": reason,
         "next_review": next_review_date(word, result, history),
     }])
-    new = pd.concat([history, row], ignore_index=True)
-    new.to_csv(HISTORY_PATH, index=False)
+    pd.concat([history, row], ignore_index=True).to_csv(HISTORY_PATH, index=False)
 
 
-def local_judge(row, answer, direction):
+def judge_answer(row, answer, direction):
     user = normalize_text(answer)
+    if not user:
+        return {"result": "wrong", "mode": "未入力", "reason": "答えを入力してください。"}
+
     if direction == "英→日":
         corrects = split_answers(row["meaning"])
         accepts = split_answers(row["accepted_answers"])
+        all_ok = corrects + accepts
     else:
-        corrects = [row["word"]]
+        corrects = [str(row["word"])]
         accepts = []
+        all_ok = corrects
+
     for a in corrects:
         if user == normalize_text(a):
-            return {"result": "correct", "mode": "完全一致", "reason": "正解と完全一致しました。"}
+            return {"result": "correct", "mode": "完全一致", "reason": "正解訳と完全一致しました。"}
+
     for a in accepts:
         if user == normalize_text(a):
-            return {"result": "correct", "mode": "許容訳一致", "reason": "許容訳として登録されています。"}
-    for a in corrects + accepts:
+            return {"result": "correct", "mode": "類義語一致", "reason": f"『{a}』は許容訳として登録されています。"}
+
+    for a in all_ok:
         aa = normalize_text(a)
         if len(user) >= 2 and len(aa) >= 2 and (user in aa or aa in user):
-            return {"result": "almost", "mode": "部分一致", "reason": f"『{a}』に近い表現です。"}
-    return None
+            return {"result": "almost", "mode": "部分一致", "reason": f"『{a}』に近いですが、少し短い/広い表現です。"}
 
+    # 明らかな近似語を少し拾う
+    near_words = {
+        "入手": ["purchase", "available"],
+        "導入": ["implement"],
+        "必要": ["require", "mandatory"],
+        "確認": ["confirm"],
+        "延期": ["delay", "postpone"],
+        "減少": ["reduce"],
+        "増加": ["increase"],
+    }
+    for key, words in near_words.items():
+        if key in user and row["word"] in words:
+            return {"result": "almost", "mode": "近い表現", "reason": f"『{key}』は近い表現ですが、正解例も確認しましょう。"}
 
-def ai_judge(row, answer, direction, model):
-    problem = api_key_problem()
-    if problem:
-        return {"result": "wrong", "mode": "AI判定なし", "reason": problem}
-    if OpenAI is None:
-        return {"result": "wrong", "mode": "AI判定なし", "reason": "openaiパッケージが使えません。"}
-    client = OpenAI(api_key=get_api_key())
-    prompt = f"""
-あなたはTOEIC単語学習アプリの採点者です。
-方向: {direction}
-英単語: {row['word']}
-正解訳: {row['meaning']}
-許容訳: {row['accepted_answers']}
-例文: {row['example']}
-学習者の回答: {answer}
-
-判定は correct / almost / wrong のどれか。
-短い日本語解説も付けてください。
-JSONだけで返してください。
-""".strip()
-    try:
-        res = client.responses.create(
-            model=model,
-            input=prompt,
-            text={"format": {"type": "json_schema", "name": "judge", "schema": {
-                "type": "object",
-                "properties": {
-                    "result": {"type": "string", "enum": ["correct", "almost", "wrong"]},
-                    "reason": {"type": "string"},
-                    "better_answer": {"type": "string"}
-                },
-                "required": ["result", "reason", "better_answer"],
-                "additionalProperties": False
-            }, "strict": True}}
-        )
-        d = json.loads(res.output_text)
-        return {"result": d["result"], "mode": "AI判定", "reason": f"{d['reason']} 正解例: {d['better_answer']}"}
-    except Exception as e:
-        return {"result": "wrong", "mode": "AI判定エラー", "reason": f"APIキー・課金設定・モデル名を確認してください。詳細: {e}"}
-
-
-def ai_tutor(row, answer, judgement, direction, model):
-    problem = api_key_problem()
-    if problem:
-        return problem
-    if OpenAI is None:
-        return "openaiパッケージが使えません。"
-    client = OpenAI(api_key=get_api_key())
-    prompt = f"""
-TOEIC単語の家庭教師として、短くわかりやすく日本語で解説してください。
-方向: {direction}
-英単語: {row['word']}
-意味: {row['meaning']}
-例文: {row['example']}
-回答: {answer}
-判定: {judgement['result']}
-判定理由: {judgement['reason']}
-出力は、1.どこが違うか 2.覚え方 3.例文訳 の順で簡潔に。
-""".strip()
-    try:
-        res = client.responses.create(model=model, input=prompt)
-        return res.output_text
-    except Exception as e:
-        return f"APIキー・課金設定・モデル名を確認してください。詳細: {e}"
+    return {"result": "wrong", "mode": "辞書判定", "reason": "登録されている正解・類義語とは一致しませんでした。"}
 
 
 def label(r):
@@ -207,7 +139,7 @@ def make_quiz_df(df, history, mode, levels):
 
 st.set_page_config(page_title="TOEIC入力式単語練習", page_icon="📘", layout="wide")
 st.title("📘 TOEIC入力式単語練習")
-st.caption("入力式・AI採点・AI家庭教師・英日/日英・忘却曲線復習・苦手ランキング対応")
+st.caption("無料版：入力式・類義語辞書判定・英日/日英・忘却曲線復習・苦手ランキング対応")
 
 df = load_words()
 history = load_history()
@@ -217,13 +149,7 @@ with st.sidebar:
     levels = st.multiselect("レベル", sorted(df["level"].astype(str).unique()), default=sorted(df["level"].astype(str).unique()))
     direction = st.radio("出題方向", ["英→日", "日→英", "ランダム"], index=0)
     mode = st.radio("出題モード", ["全単語", "ランダム10問", "間違えた単語だけ", "復習期限の単語"], index=0)
-    use_ai = st.toggle("AI判定を使う", value=True)
-    use_tutor = st.toggle("AI家庭教師解説", value=True)
-    model = st.text_input("AIモデル", value="gpt-4.1-mini")
-    problem = api_key_problem()
-    st.write("AI:", "有効" if not problem else "未設定/要確認")
-    if problem:
-        st.warning(problem)
+    st.success("AI課金なしで使えます")
 
 qdf = make_quiz_df(df, history, mode, levels)
 if mode == "ランダム10問":
@@ -249,19 +175,16 @@ with left:
     else:
         st.markdown(f"## **{row['meaning']}**")
         placeholder = "例：increase"
-    st.caption(f"Level: {row['level']} / Direction: {actual_direction}")
+    st.caption(f"Level: {row['level']} / 品詞: {row['pos']} / Direction: {actual_direction}")
 
     with st.form("answer_form"):
         ans = st.text_input("答え", placeholder=placeholder)
         submitted = st.form_submit_button("判定する")
 
-    if submitted and ans.strip():
-        judge = local_judge(row, ans, actual_direction)
-        if judge is None:
-            judge = ai_judge(row, ans, actual_direction, model) if use_ai else {"result": "wrong", "mode": "ローカル判定", "reason": "登録訳と一致しませんでした。"}
+    if submitted:
+        judge = judge_answer(row, ans, actual_direction)
         save_history(row["word"], actual_direction, ans, judge["result"], judge["mode"], judge["reason"], history)
-        tutor = ai_tutor(row, ans, judge, actual_direction, model) if use_tutor and judge["result"] != "correct" else ""
-        st.session_state.last = {"judge": judge, "answer": ans, "tutor": tutor}
+        st.session_state.last = {"judge": judge, "answer": ans}
         history = load_history()
 
     if st.session_state.last:
@@ -275,11 +198,10 @@ with left:
         st.write(f"**判定:** {j['mode']}")
         st.write(f"**理由:** {j['reason']}")
         st.info(f"英単語: {row['word']} / 意味: {row['meaning']}")
-        if st.session_state.last["tutor"]:
-            st.markdown("### AI家庭教師")
-            st.write(st.session_state.last["tutor"])
-        with st.expander("例文"):
+        st.write(f"**許容表現:** {row['accepted_answers']}")
+        with st.expander("例文・メモ"):
             st.write(row["example"])
+            st.write(row["example_ja"])
             st.write(row["note"])
 
     c1, c2, c3 = st.columns(3)
@@ -303,8 +225,7 @@ with right:
     if len(history) == 0:
         st.write("まだ履歴はありません。")
     else:
-        total = len(history)
-        st.metric("解答数", total)
+        st.metric("解答数", len(history))
         st.metric("正解率", f"{(history['result'].eq('correct').mean()*100):.1f}%")
         st.write("次回復習予定")
         st.dataframe(history.tail(5)[["word", "result", "next_review"]], use_container_width=True, hide_index=True)
