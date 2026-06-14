@@ -1,31 +1,228 @@
-word,meaning,accepted_answers,example,note,level,pos,example_ja
-increase,増加する,増える／上がる／増やす／増加／増大する／高まる／伸びる／上昇する／数が多くなる／量が増える,Sales increased last year.,売上・費用・需要で頻出,600,verb,昨年、売上が増加した。
-implement,実行する,実施する／導入する／実装する／行う／取り入れる／計画を実行する／制度を導入する／方針を実施する,The company implemented a new policy.,policyやplanと相性が良い,730,verb,その会社は新しい方針を実施した。
-provide,提供する,与える／供給する／用意する／準備する／支給する／サービスを提供する／情報を提供する,The hotel provides free breakfast.,provide A with Bも重要,600,verb,そのホテルは無料の朝食を提供している。
-require,必要とする,求める／要求する／必要である／必須とする／条件とする／経験を必要とする,This position requires experience.,求人や条件で頻出,600,verb,この職種は経験を必要とする。
-purchase,購入する,購入／買う／物を買う／商品を買う／品物を購入する／買い求める／購買する／手に入れる,Please keep your purchase receipt.,レシート関連で頻出,600,verb,購入レシートを保管してください。
-available,利用できる,入手可能な／空いている／使える／利用可能な／対応可能な／手に入る／予約できる／都合がよい,The room is available after 3 p.m.,人にも物にも使える,600,adj,その部屋は午後3時以降利用できます。
-confirm,確認する,確かめる／承認する／再確認する／予約を確認する／事実を確認する／確定する,Please confirm your reservation.,予約確認で頻出,600,verb,予約を確認してください。
-delay,遅れ,遅延／遅らせる／延期する／遅れる／遅くする／先延ばしにする,The flight was delayed due to weather.,名詞・動詞どちらも出る,600,noun/verb,天候のため飛行機が遅れた。
-annual,年1回の,毎年の／年間の／年次の／一年の／年に一度の,The annual meeting will be held in June.,annual reportも頻出,730,adj,年次会議は6月に開催される。
-refund,返金,払い戻し／返金する／払い戻す／お金を返す／返金額,You can request a refund within 30 days.,名詞・動詞どちらも使う,600,noun/verb,30日以内に返金を申請できます。
-appointment,予約,約束／面会の約束／予定／アポイント／診察予約／面談予約,I have an appointment at 2 p.m.,病院や面談の予約,600,noun,私は午後2時に予約があります。
-invoice,請求書,送り状／インボイス／請求する書類／代金請求書,The invoice was sent yesterday.,ビジネス文書で頻出,730,noun,請求書は昨日送られた。
-facility,施設,設備／機能／施設設備／建物／利用施設,The new facility opened last month.,工場・会議施設など,600,noun,新しい施設は先月オープンした。
-indicate,示す,指し示す／表す／意味する／指摘する／表示する／明らかにする,The sign indicates the entrance.,資料やグラフでも使う,730,verb,その標識は入口を示している。
-additional,追加の,さらに多くの／別の／追加的な／余分の／もう一つの,Additional information is required.,書類・料金で頻出,600,adj,追加情報が必要です。
-reduce,減らす,削減する／低下させる／少なくする／減少させる／下げる／抑える,The company reduced costs.,costやwasteと相性が良い,600,verb,その会社はコストを削減した。
-expand,拡大する,広げる／拡張する／拡大させる／展開する／事業を広げる,The company plans to expand overseas.,事業拡大で頻出,730,verb,その会社は海外に拡大する予定だ。
-maintain,維持する,保つ／整備する／管理する／継続する／保守する／状態を保つ,Please maintain a clean workspace.,状態維持・設備保守,730,verb,清潔な作業場所を維持してください。
-submit,提出する,送信する／差し出す／提出／出す／フォームを送る／書類を提出する,Please submit the form by Friday.,書類提出で頻出,600,verb,金曜日までにフォームを提出してください。
-participate,参加する,加わる／出席する／関わる／参加／イベントに参加する,Employees are encouraged to participate.,イベント・会議で頻出,600,verb,従業員は参加を勧められている。
-postpone,延期する,先延ばしにする／遅らせる／後にする／予定を延期する,The meeting was postponed until Monday.,会議・予定で頻出,730,verb,会議は月曜日まで延期された。
-negotiate,交渉する,話し合う／取り決める／協議する／契約交渉する／価格交渉する,They negotiated a new contract.,契約や価格交渉,860,verb,彼らは新しい契約について交渉した。
-approximately,およそ,約／だいたい／おおよそ／ほぼ／約〜／およそ〜,The trip takes approximately two hours.,数字と一緒に出る,730,adv,その移動はおよそ2時間かかる。
-mandatory,必須の,義務的な／強制の／必要な／必ず参加の／必修の,Attendance is mandatory.,ルールや研修で頻出,860,adj,出席は必須です。
-complaint,苦情,不満／クレーム／苦情申し立て／不平,The manager handled the complaint.,顧客対応で頻出,730,noun,マネージャーはその苦情に対応した。
-reliable,信頼できる,頼りになる／確実な／信用できる／信頼性のある,We need a reliable supplier.,人・会社・物に使う,730,adj,私たちは信頼できる供給業者が必要だ。
-temporary,一時的な,臨時の／仮の／短期の／一時的／期間限定の,This is a temporary solution.,temporary positionも頻出,600,adj,これは一時的な解決策です。
-appropriate,適切な,ふさわしい／妥当な／合った／適した／適正な,Please wear appropriate clothing.,服装・対応・方法で使う,730,adj,適切な服装をしてください。
-significant,重要な,かなりの／著しい／大きな／重要な／意味のある／相当な,There was a significant increase in sales.,変化や差を強調,860,adj,売上に大幅な増加があった。
-comprehensive,包括的な,総合的な／広範囲の／詳しい／全体的な／網羅的な,The report provides a comprehensive overview.,レポートや計画で頻出,860,adj,その報告書は包括的な概要を提供している。
+word,meaning,accepted_answers,example,note,level,pos,example_ja,ipa
+describe,説明する,描写する／述べる／記述する／特徴を説明する,The brochure describes the service.,資料・広告で頻出,600,verb,そのパンフレットはサービスを説明している。,
+include,含む,含める／入れる／含まれる／込みである,The price includes breakfast.,料金・内容説明で頻出,600,verb,料金には朝食が含まれています。,
+attach,添付する,付ける／貼る／同封する／添える,Please attach the receipt to the form.,メール・申請で頻出,600,verb,フォームに領収書を添付してください。,
+enclose,同封する,封入する／添える／一緒に入れる,I enclosed a copy of the invoice.,ビジネスメールで頻出,600,verb,請求書のコピーを同封しました。,
+complete,完了する,完成させる／終える／記入する／全部の,Please complete the application form.,申請書で頻出,600,verb/adj,申請書に記入してください。,
+fill out,記入する,書き込む／フォームに記入する／必要事項を書く,Please fill out this form.,フォーム関連で頻出,600,phrase,このフォームに記入してください。,
+invoice,請求書,送り状／インボイス／代金請求書／請求する書類,The invoice was sent yesterday.,会計・支払いで頻出,600,noun,請求書は昨日送られた。,
+receipt,領収書,レシート／受領書／受け取り／購入証明,Please keep your receipt.,購入・経費で頻出,600,noun,領収書を保管してください。,
+refund,返金,払い戻し／返金する／払い戻す／お金を返す,You can request a refund within 30 days.,返品・支払いで頻出,600,noun/verb,30日以内に返金を申請できます。,
+fee,料金,手数料／費用／会費／追加料金,There is a cancellation fee.,料金関連で頻出,600,noun,キャンセル料があります。,
+charge,請求する,料金／請求／課す／充電する／負担させる,The hotel charges a service fee.,多義語なので重要,600,verb/noun,そのホテルはサービス料を請求する。,
+expense,費用,経費／出費／支出／費用項目,Travel expenses will be reimbursed.,経費で頻出,600,noun,交通費は払い戻されます。,
+budget,予算,予算額／経費計画／資金計画,The project is within budget.,会議・計画で頻出,600,noun,そのプロジェクトは予算内です。,
+cost,費用,価格／原価／費用がかかる／コスト,The total cost was higher than expected.,基本だが頻出,600,noun/verb,総費用は予想より高かった。,
+price,価格,値段／料金／価格を設定する／代金,The price includes tax.,購入・広告で頻出,600,noun,価格には税金が含まれています。,
+discount,割引,値引き／割り引く／割引価格／ディスカウント,Members receive a 10 percent discount.,販売・広告で頻出,600,noun/verb,会員は10％の割引を受けられます。,
+deliver,配達する,届ける／配送する／納品する／配る,The package will be delivered tomorrow.,物流・配送で頻出,600,verb,荷物は明日配達されます。,
+delivery,配達,配送／納品／届けること,Free delivery is available for large orders.,配送で頻出,600,noun,大量注文では無料配送が利用できます。,
+ship,発送する,出荷する／配送する／送る／船,The order was shipped yesterday.,配送で頻出,600,verb/noun,注文品は昨日発送された。,
+package,小包,荷物／包装する／パッケージ／梱包,The package arrived this morning.,配送・商品で頻出,600,noun/verb,その小包は今朝到着した。,
+item,商品,品物／項目／物／商品一つ,This item is currently unavailable.,買い物・在庫で頻出,600,noun,この商品は現在入手できません。,
+product,製品,商品／生産物／品物,The product comes with a warranty.,販売・製造で頻出,600,noun,その製品には保証が付いている。,
+order,注文,注文する／命令／順番／発注,Your order has been shipped.,買い物・物流で頻出,600,noun/verb,あなたの注文品は発送されました。,
+supply,供給する,供給／備品／支給する／用意する,Office supplies are stored in the cabinet.,備品・供給で頻出,600,noun/verb,事務用品は棚に保管されています。,
+inventory,在庫,棚卸し／在庫品／商品一覧,We need to check the inventory.,小売・物流で頻出,600,noun,在庫を確認する必要があります。,
+warehouse,倉庫,保管場所／物流倉庫／貯蔵庫,The items are stored in the warehouse.,物流で頻出,600,noun,商品は倉庫に保管されています。,
+customer,顧客,お客様／客／利用者／購入者,Customers can return items within 30 days.,店舗・サービスで頻出,600,noun,顧客は30日以内に商品を返品できます。,
+client,顧客,依頼人／取引先／クライアント／お客様,We met with an important client.,ビジネス取引で頻出,600,noun,私たちは重要な顧客と会いました。,
+guest,宿泊客,客／招待客／来客／ゲスト,Hotel guests can use the gym.,ホテル・イベントで頻出,600,noun,ホテルの宿泊客はジムを利用できます。,
+visitor,訪問者,来客／見学者／訪れる人,Visitors must sign in at the front desk.,オフィス・施設で頻出,600,noun,訪問者は受付で記名しなければなりません。,
+employee,従業員,社員／職員／労働者／スタッフ,Employees must wear ID badges.,人事・職場で頻出,600,noun,従業員はIDバッジを着用しなければなりません。,
+manager,管理者,部長／店長／責任者／マネージャー,The manager approved the request.,職場・承認で頻出,600,noun,マネージャーはその依頼を承認しました。,
+staff,職員,スタッフ／従業員／社員／職員たち,The staff is very helpful.,店舗・職場で頻出,600,noun,スタッフはとても親切です。,
+applicant,応募者,申込者／志願者／候補者,The applicant has five years of experience.,求人で頻出,600,noun,その応募者は5年の経験があります。,
+candidate,候補者,応募者／志願者／候補,The candidate was invited for an interview.,採用で頻出,600,noun,その候補者は面接に招待されました。,
+position,職,職位／役職／仕事／ポジション／位置,The company is hiring for a sales position.,求人で頻出,600,noun,その会社は営業職を募集しています。,
+location,場所,所在地／位置／会場／場所情報,The new location is near the station.,店舗・会議場所で頻出,600,noun,新しい場所は駅の近くです。,
+branch,支店,支社／支部／分店／枝,The bank opened a new branch.,銀行・会社で頻出,600,noun,その銀行は新しい支店を開きました。,
+facility,施設,設備／機能／建物／施設設備,The new facility opened last month.,工場・会議施設で頻出,600,noun,新しい施設は先月オープンしました。,
+office,事務所,会社／オフィス／営業所／職場,Our office is closed on weekends.,基本語だが頻出,600,noun,私たちのオフィスは週末休みです。,
+department,部署,部門／学科／売り場／課,Please contact the sales department.,会社組織で頻出,600,noun,営業部に連絡してください。,
+entrance,入口,入り口／入場／入ること,The entrance is on the second floor.,案内で頻出,600,noun,入口は2階にあります。,
+exit,出口,退出／出る／出口を出る,Use the emergency exit.,案内・安全で頻出,600,noun/verb,非常口を使用してください。,
+floor,階,床／売り場／フロア,The meeting room is on the third floor.,建物案内で頻出,600,noun,会議室は3階にあります。,
+nearby,近くの,近くに／付近の／近隣の,There is a nearby restaurant.,場所案内で頻出,600,adj/adv,近くにレストランがあります。,
+convenient,便利な,都合がよい／使いやすい／便利,The location is convenient for commuters.,場所・時間で頻出,600,adj,その場所は通勤者にとって便利です。,
+equipment,設備,機器／装置／道具／備品,The equipment needs maintenance.,オフィス・工場で頻出,600,noun,その設備はメンテナンスが必要です。,
+repair,修理する,直す／修理／修復する／補修する,The technician repaired the copier.,設備トラブルで頻出,600,verb/noun,技術者がコピー機を修理しました。,
+replace,交換する,取り替える／置き換える／代わりにする,The old printer was replaced.,設備・部品で頻出,600,verb,古いプリンターは交換されました。,
+install,設置する,取り付ける／インストールする／導入する,They installed new software.,IT・設備で頻出,600,verb,彼らは新しいソフトウェアをインストールしました。,
+copy,コピーする,写し／複写する／コピー／控え,Please make a copy of this document.,オフィス作業で頻出,600,noun/verb,この書類のコピーを取ってください。,
+print,印刷する,印刷／プリントする／印字する,Please print the report before the meeting.,オフィス作業で頻出,600,verb/noun,会議前に報告書を印刷してください。,
+document,書類,文書／資料／記録する／ドキュメント,Please review the document.,書類・契約で頻出,600,noun,書類を確認してください。,
+file,ファイル,書類／保管する／提出する／ファイルする,The file is attached to the email.,メール・書類で頻出,600,noun/verb,そのファイルはメールに添付されています。,
+folder,フォルダー,書類入れ／フォルダ／保存場所,Put the documents in this folder.,オフィス作業で頻出,600,noun,書類をこのフォルダーに入れてください。,
+password,パスワード,暗証番号／ログイン情報／認証情報,You need a password to access the system.,IT・ログインで頻出,600,noun,システムにアクセスするにはパスワードが必要です。,
+review,確認する,見直す／検討する／レビューする／再確認する／評価する,Please review the document carefully.,書類・契約で頻出,600,verb/noun,書類を注意深く確認してください。,
+approve,承認する,認める／許可する／了承する／許可を出す,The manager approved the request.,申請・依頼で頻出,600,verb,マネージャーはその依頼を承認しました。,
+prepare,準備する,用意する／支度する／作成する／整える,Please prepare the materials for the meeting.,会議・資料で頻出,600,verb,会議の資料を準備してください。,
+arrange,手配する,準備する／整える／予定を組む／調整する,She arranged a meeting with the client.,会議・旅行・配送で頻出,600,verb,彼女は顧客との会議を手配しました。,
+organize,整理する,企画する／まとめる／組織する／準備する,We organized the files by date.,オフィス・イベントで頻出,600,verb,私たちはファイルを日付順に整理しました。,
+participate,参加する,加わる／出席する／関わる／イベントに参加する,Employees are encouraged to participate.,イベント・会議で頻出,600,verb,従業員は参加を勧められています。,
+register,登録する,申し込む／記録する／受付する／登録,You must register by Friday.,イベント・講座で頻出,600,verb,金曜日までに登録しなければなりません。,
+training,研修,訓練／教育／トレーニング／講習,New employees attend training.,会社・人事で頻出,600,noun,新入社員は研修に参加します。,
+policy,方針,規定／政策／規則／ポリシー,The company changed its refund policy.,会社規定で頻出,600,noun,その会社は返金方針を変更しました。,
+procedure,手順,手続き／方法／処理手順／工程,Follow the safety procedure.,マニュアル・規則で頻出,600,noun,安全手順に従ってください。,
+quality,品質,質／クオリティ／高品質／品質水準,Quality is our top priority.,商品・サービスで頻出,600,noun,品質は私たちの最優先事項です。,
+improve,改善する,向上させる／良くする／改良する／上達する,We improved customer service.,ビジネス一般で頻出,600,verb,私たちは顧客サービスを改善しました。,
+efficient,効率的な,能率的な／無駄のない／効率がよい／効率の良い,This system is more efficient.,業務改善で頻出,600,adj,このシステムはより効率的です。,
+annual,年1回の,毎年の／年間の／年次の／一年の／年に一度の,The annual meeting will be held in June.,annual reportも頻出,600,adj,年次会議は6月に開催されます。,
+regular,定期的な,通常の／普通の／規則的な／いつもの,Regular maintenance is important.,頻出形容詞,600,adj,定期的なメンテナンスは重要です。,
+temporary,一時的な,臨時の／仮の／短期の／期間限定の,This is a temporary solution.,temporary positionも頻出,600,adj,これは一時的な解決策です。,
+permanent,永久的な,常設の／恒久的な／正社員の／永続的な,She accepted a permanent position.,雇用・状態で頻出,600,adj,彼女は正社員の職を受け入れました。,
+appropriate,適切な,ふさわしい／妥当な／合った／適した／適正な,Please wear appropriate clothing.,服装・対応で頻出,600,adj,適切な服装をしてください。,
+necessary,必要な,必須の／必要である／欠かせない,Bring all necessary documents.,基本だが頻出,600,adj,必要な書類をすべて持参してください。,
+possible,可能な,あり得る／できる／可能である,Please reply as soon as possible.,as soon as possibleで頻出,600,adj,できるだけ早く返信してください。,
+attachment,添付ファイル,添付／添付資料／添付文書／添付ファイル／メール添付,Please check the attachment before the meeting.,メールで頻出,600,noun,会議前に添付ファイルを確認してください。,
+recipient,受取人,宛先／受信者／受取人／メールの送り先,Enter the recipient's email address.,メールで頻出,600,noun,受取人のメールアドレスを入力してください。,
+forward,転送する,転送する／送り直す／回す／転送,Please forward this email to your manager.,メールで頻出,600,verb,このメールを上司に転送してください。,
+reply,返信する,返事する／回答する／返信／応答する,Please reply by Friday.,メールで頻出,600,verb/noun,金曜日までに返信してください。,
+deadline,締め切り,期限／締切／提出期限／期日,The deadline has been extended.,仕事で頻出,600,noun,締め切りが延長された。,
+approval,承認,許可／了承／承認を得ること,The proposal requires approval.,会議で頻出,600,noun,その提案には承認が必要だ。,
+recruit,採用する,雇う／募集する／人材を集める,The company plans to recruit new staff.,人事で頻出,600,verb,会社は新しい職員を採用する予定だ。,
+qualification,資格,条件／資格条件／能力／適性,This position requires special qualifications.,求人で頻出,600,noun,この職種には特別な資格が必要だ。,
+promotion,昇進,昇格／昇進すること／役職アップ,She received a promotion last year.,人事で頻出,600,noun,彼女は昨年昇進した。,
+vacancy,欠員,空席／募集枠／空き,There is a vacancy in the sales department.,求人で頻出,600,noun,営業部に欠員があります。,
+accommodation,宿泊施設,宿泊先／宿／ホテル設備／宿泊,The fee includes accommodation.,旅行で頻出,600,noun,料金には宿泊費が含まれている。,
+occupancy,稼働率,入居率／利用率／占有率,Hotel occupancy increased this month.,ホテルで頻出,600,noun,ホテルの稼働率が今月上昇した。,
+itinerary,旅程,旅行日程／スケジュール／行程,Please review your itinerary.,出張で頻出,600,noun,旅程を確認してください。,
+balance,残高,収支／残り／差額,Please check your account balance.,銀行で頻出,600,noun,口座残高を確認してください。,
+transfer,振り込む,送金する／移す／移転する／振替,I transferred the payment yesterday.,銀行で頻出,600,verb/noun,昨日支払いを振り込んだ。,
+account,口座,アカウント／口座／取引先,Please open a new account.,銀行・ITで頻出,600,noun,新しい口座を開設してください。,
+withdraw,引き出す,出金する／撤回する／取り下げる,You can withdraw cash here.,銀行で頻出,600,verb,ここで現金を引き出せます。,
+participant,参加者,出席者／参加する人／関係者,All participants received certificates.,会議で頻出,600,noun,全参加者が修了証を受け取った。,
+presentation,発表,プレゼン／説明会／発表資料,Her presentation was excellent.,会議で頻出,600,noun,彼女の発表は素晴らしかった。,
+proposal,提案,提案書／企画案／申し出,The proposal was accepted.,会議で頻出,600,noun,その提案は受け入れられた。,
+objective,目的,目標／狙い／達成目標,Our objective is to improve service.,計画で頻出,600,noun,私たちの目的はサービス改善だ。,
+goal,目標,目的／到達点／目指すもの,We achieved our sales goal.,基本頻出,600,noun,売上目標を達成した。,
+opportunity,機会,チャンス／好機／機会,This is a great opportunity.,頻出語,600,noun,これは素晴らしい機会だ。,
+experience,経験,体験／経験すること／職歴,She has experience in marketing.,求人で頻出,600,noun,彼女はマーケティング経験がある。,
+responsibility,責任,担当業務／責務／役割,This is your responsibility.,職場で頻出,600,noun,これはあなたの責任です。,
+performance,業績,成果／実績／成績,Employee performance is reviewed annually.,人事で頻出,600,noun,従業員の業績は毎年評価される。,
+satisfaction,満足,満足度／満足感,Customer satisfaction improved.,顧客対応で頻出,600,noun,顧客満足度が向上した。,
+complaint,苦情,クレーム／不満／苦情申し立て,We received a complaint from a customer.,頻出語,600,noun,顧客から苦情を受けた。,
+service,サービス,業務／接客／サービス,Customer service is important.,超頻出,600,noun,顧客サービスは重要だ。,
+representative,担当者,代理人／代表者／営業担当,Please contact our representative.,頻出語,600,noun,担当者に連絡してください。,
+subscription,定期購読,会員契約／サブスク／定期契約,My subscription expires next month.,近年頻出,600,noun,私の契約は来月切れる。,
+membership,会員資格,会員権／会員登録,Membership is free.,頻出語,600,noun,会員登録は無料です。,
+advertisement,広告,宣伝／広告掲載／広告物,I saw the advertisement online.,頻出語,600,noun,その広告をオンラインで見た。,
+brochure,パンフレット,案内冊子／カタログ,The brochure contains useful information.,旅行で頻出,600,noun,パンフレットには有用な情報が載っている。,
+survey,調査,アンケート／調査すること,Please complete the survey.,頻出語,600,noun,アンケートに回答してください。,
+reservation,予約,予約すること／席の確保,I confirmed my reservation.,頻出語,600,noun,予約を確認した。,
+luggage,荷物,手荷物／旅行かばん,Please do not leave luggage unattended.,旅行で頻出,600,noun,荷物を放置しないでください。,
+departure,出発,出発時刻／出発便,The departure time changed.,旅行で頻出,600,noun,出発時刻が変更された。,
+arrival,到着,到着時刻／到着便,Our arrival was delayed.,旅行で頻出,600,noun,到着が遅れた。,
+destination,目的地,行き先／到着地,Tokyo is our destination.,旅行で頻出,600,noun,東京が目的地です。,
+commute,通勤する,通う／通勤すること,She commutes by train.,職場で頻出,600,verb,彼女は電車通勤している。,
+insurance,保険,保険契約／保険制度,Travel insurance is recommended.,旅行で頻出,600,noun,旅行保険をおすすめします。,
+claim,請求する,主張する／保険請求する,You can claim compensation.,保険で頻出,600,verb,補償を請求できます。,
+compensation,補償,賠償金／補填／補償金,Compensation will be provided.,契約で頻出,600,noun,補償が提供されます。,
+maintenance,保守,整備／維持管理／メンテナンス,Maintenance is scheduled for tonight.,設備で頻出,600,noun,今夜メンテナンスが予定されている。,
+warranty,保証,保証書／品質保証,The product includes a warranty.,製品で頻出,600,noun,その製品には保証が付いている。,
+defective,欠陥のある,不良の／問題のある,The defective item was replaced.,品質管理で頻出,600,adj,不良品は交換された。,
+conference,会議,大会／学会／カンファレンス,She attended an international conference.,会議で頻出,600,noun,彼女は国際会議に参加した。,
+agenda,議題,会議事項／予定表,The agenda was distributed yesterday.,会議で頻出,600,noun,議題は昨日配布された。,
+negotiate,交渉する,話し合う／協議する／契約交渉する／価格交渉する／取り決める,They negotiated a new contract with the supplier.,契約・価格交渉で頻出,800,verb,彼らは供給業者と新しい契約について交渉した。,/nɪˈɡoʊʃieɪt/
+contract,契約,契約書／契約する／取り決め／請負,Please review the contract before signing it.,契約書・署名で頻出,700,noun/verb,署名する前に契約書を確認してください。,/ˈkɑːntrækt/
+agreement,合意,契約／協定／同意／取り決め,Both companies reached an agreement.,契約・交渉の結果として頻出,700,noun,両社は合意に達した。,/əˈɡriːmənt/
+authorize,許可する,認可する／承認する／権限を与える／正式に認める,Only managers are authorized to approve refunds.,権限・承認で頻出,800,verb,返金を承認できるのは管理者だけです。,/ˈɔːθəraɪz/
+comply,従う,遵守する／守る／規則に従う／応じる,All employees must comply with safety regulations.,規則・法令遵守で頻出,800,verb,全従業員は安全規則を遵守しなければならない。,/kəmˈplaɪ/
+compliance,遵守,法令遵守／規則遵守／コンプライアンス,The company improved its compliance procedures.,法務・社内規則で頻出,800,noun,その会社は法令遵守手順を改善した。,/kəmˈplaɪəns/
+regulation,規制,規則／規定／法規／取り決め,New regulations will take effect next month.,法律・会社規則で頻出,700,noun,新しい規制は来月施行される。,/ˌreɡjəˈleɪʃən/
+minutes,議事録,会議記録／記録／分,Please send the meeting minutes to all participants.,会議後の文脈で頻出,800,noun,会議の議事録を全参加者に送ってください。,/ˈmɪnɪts/
+attendee,出席者,参加者／来場者,All attendees must register in advance.,イベント・会議で頻出,700,noun,全参加者は事前登録しなければならない。,/əˌtenˈdiː/
+reschedule,予定を変更する,再予定する／日程変更する／予定を組み直す,The meeting was rescheduled for Tuesday.,日程調整で頻出,700,verb,会議は火曜日に変更された。,/ˌriːˈskedʒuːl/
+inquire,問い合わせる,尋ねる／質問する／照会する,Customers may inquire about delivery options.,問い合わせで頻出,800,verb,顧客は配送方法について問い合わせることができます。,/ɪnˈkwaɪər/
+shipment,出荷,発送／配送品／積荷／荷物,The shipment arrived earlier than expected.,物流で頻出,700,noun,その出荷品は予想より早く到着した。,/ˈʃɪpmənt/
+supplier,供給業者,仕入先／納入業者／業者／サプライヤー,We selected a reliable supplier.,購買・製造で頻出,700,noun,私たちは信頼できる供給業者を選んだ。,/səˈplaɪər/
+distribute,配布する,分配する／配送する／流通させる,The company distributes products nationwide.,物流・販売で頻出,800,verb,その会社は全国に商品を流通させている。,/dɪˈstrɪbjuːt/
+courier,宅配便,配達員／配送業者／急使,The documents were sent by courier.,配送方法で頻出,800,noun,書類は宅配便で送られた。,/ˈkʊriər/
+fragile,壊れやすい,割れやすい／繊細な／もろい,Fragile items must be packed carefully.,配送・梱包で頻出,700,adj,壊れやすい商品は慎重に梱包されなければならない。,/ˈfrædʒəl/
+assemble,組み立てる,集める／組み立てを行う／集合させる,The furniture is easy to assemble.,製品・製造で頻出,700,verb,その家具は簡単に組み立てられる。,/əˈsembəl/
+upgrade,改良する,更新する／アップグレードする／改善する,The system will be upgraded next week.,IT・設備で頻出,700,verb/noun,そのシステムは来週更新される。,/ˌʌpˈɡreɪd/
+malfunction,故障する,不具合／故障／正常に動かない,The machine malfunctioned during operation.,設備不良で頻出,800,verb/noun,その機械は作業中に故障した。,/ˌmælˈfʌŋkʃən/
+inspect,検査する,点検する／調べる／確認する／視察する,The equipment is inspected regularly.,品質・安全で頻出,700,verb,その設備は定期的に点検されている。,/ɪnˈspekt/
+specification,仕様,規格／明細／仕様書／条件,The product meets all specifications.,製品・契約で頻出,800,noun,その製品はすべての仕様を満たしている。,/ˌspesɪfɪˈkeɪʃən/
+durable,耐久性のある,丈夫な／長持ちする／耐久性が高い,The material is lightweight and durable.,製品説明で頻出,700,adj,その素材は軽くて耐久性がある。,/ˈdʊrəbəl/
+advertise,広告する,宣伝する／告知する／広告を出す,The company advertised the new service online.,販売促進で頻出,700,verb,その会社は新サービスをオンラインで宣伝した。,/ˈædvərtaɪz/
+promote,促進する,宣伝する／昇進させる／推進する,The campaign promoted the new product.,販促・昇進の両方で頻出,700,verb,そのキャンペーンは新商品を宣伝した。,/prəˈmoʊt/
+campaign,キャンペーン,宣伝活動／販促活動／運動,The marketing campaign was successful.,マーケティングで頻出,700,noun,そのマーケティングキャンペーンは成功した。,/kæmˈpeɪn/
+demographic,人口統計の,顧客層の／属性の／人口統計,The report includes demographic information.,マーケティング資料で頻出,800,adj/noun,その報告書には人口統計情報が含まれている。,/ˌdeməˈɡræfɪk/
+brand,ブランド,銘柄／商標／ブランド化する,The brand is popular among young customers.,販売・広告で頻出,700,noun,そのブランドは若い顧客に人気がある。,/brænd/
+launch,発売する,開始する／新しく出す／立ち上げる,The company launched a new product line.,新商品・事業開始で頻出,700,verb,その会社は新しい製品ラインを発売した。,/lɔːntʃ/
+consumer,消費者,購入者／利用者／顧客,Consumer demand increased this year.,市場・販売で頻出,700,noun,今年、消費者需要が増加した。,/kənˈsuːmər/
+competitive,競争力のある,競争の／他社に負けない／競争的な,We offer competitive prices.,価格・市場で頻出,700,adj,私たちは競争力のある価格を提供している。,/kəmˈpetətɪv/
+target,対象にする,目標／対象／狙う／ターゲット,The advertisement targets business travelers.,広告・計画で頻出,700,noun/verb,その広告は出張者を対象にしている。,/ˈtɑːrɡɪt/
+accommodate,対応する,収容する／宿泊させる／応じる／便宜を図る,The hotel can accommodate 200 guests.,ホテル・対応で頻出,800,verb,そのホテルは200人の宿泊客を収容できる。,/əˈkɑːmədeɪt/
+venue,会場,開催地／場所／イベント会場,The venue is close to the station.,イベント・会議で頻出,700,noun,会場は駅の近くです。,/ˈvenjuː/
+implement,実行する,実施する／導入する／実装する／行う／取り入れる,The company implemented a new policy.,policyやplanと相性が良い,700,verb,その会社は新しい方針を実施した。,/ˈɪmplɪment/
+allocate,割り当てる,配分する／振り分ける／充てる／割り振る,Resources were allocated to the new project.,資源・予算配分で頻出,800,verb,資源は新しいプロジェクトに割り当てられた。,/ˈæləkeɪt/
+delegate,委任する,任せる／権限を与える／仕事を割り振る,The manager delegated tasks to the team.,管理職・業務分担で頻出,800,verb,マネージャーはチームに業務を委任した。,/ˈdelɪɡeɪt/
+coordinate,調整する,連携する／まとめる／調整を行う,She coordinated the entire event.,イベント・業務調整で頻出,700,verb,彼女はイベント全体を調整した。,/koʊˈɔːrdɪneɪt/
+prioritize,優先する,優先順位をつける／重視する,We need to prioritize urgent tasks.,業務管理で頻出,800,verb,私たちは緊急の業務を優先する必要がある。,/praɪˈɔːrətaɪz/
+streamline,効率化する,簡素化する／無駄を減らす／合理化する,The new system streamlined the process.,業務改善で頻出,800,verb,新しいシステムはその工程を効率化した。,/ˈstriːmlaɪn/
+facilitate,促進する,容易にする／円滑にする／助ける,The software facilitates communication.,ビジネス上級語,800,verb,そのソフトウェアはコミュニケーションを促進する。,/fəˈsɪlɪteɪt/
+collaborate,協力する,共同作業する／連携する／協働する,The teams collaborated on the project.,プロジェクトで頻出,700,verb,チームはそのプロジェクトで協力した。,/kəˈlæbəreɪt/
+evaluate,評価する,査定する／判断する／検討する,We evaluated several options.,比較・選定で頻出,700,verb,私たちはいくつかの選択肢を評価した。,/ɪˈvæljueɪt/
+assess,評価する,査定する／判断する／見積もる／調べる,The manager assessed the risks.,リスク・能力評価で頻出,800,verb,マネージャーはリスクを評価した。,/əˈses/
+verify,確認する,検証する／確かめる／証明する／正しいと確認する,Please verify your account information.,本人確認・情報確認で頻出,700,verb,アカウント情報を確認してください。,/ˈverɪfaɪ/
+clarify,明確にする,はっきりさせる／説明する／明らかにする,Could you clarify the deadline?,問い合わせ・会議で頻出,800,verb,締め切りを明確にしていただけますか。,/ˈklærəfaɪ/
+modify,変更する,修正する／改良する／変える／調整する,The schedule was modified yesterday.,予定・書類変更で頻出,700,verb,予定は昨日変更された。,/ˈmɑːdɪfaɪ/
+renew,更新する,再開する／延長する／新しくする,The contract must be renewed annually.,契約・会員更新で頻出,700,verb,その契約は毎年更新されなければならない。,/rɪˈnuː/
+expire,期限が切れる,失効する／満了する／終了する,The coupon expires at the end of this month.,期限・契約で頻出,700,verb,そのクーポンは今月末に期限が切れる。,/ɪkˈspaɪər/
+valid,有効な,妥当な／正当な／通用する／期限内の,This ticket is valid for one month.,チケット・書類で頻出,700,adj,このチケットは1か月間有効です。,/ˈvælɪd/
+eligible,資格がある,対象である／適格な／受ける資格がある,Employees are eligible for bonuses.,人事・条件で頻出,800,adj,従業員はボーナスの対象です。,/ˈelɪdʒəbəl/
+substitute,代わりに使う,代替する／代理／代用品／代わり,You may substitute milk for cream.,代替・代理で頻出,800,verb/noun,クリームの代わりに牛乳を使ってもよい。,/ˈsʌbstɪtuːt/
+sufficient,十分な,足りる／十分である／充分な,We have sufficient supplies for the event.,数量・条件で頻出,800,adj,イベントに十分な備品があります。,/səˈfɪʃənt/
+accurate,正確な,的確な／誤りのない／精密な,Please provide accurate information.,情報・データで頻出,700,adj,正確な情報を提供してください。,/ˈækjərət/
+procurement,調達,仕入れ／購入手続き／物品調達／調達業務／必要なものを手配すること,The procurement department selected a new supplier.,調達・購買部門で頻出,800,noun,調達部門は新しい供給業者を選んだ。,
+vendor,販売業者,業者／売り手／納入業者／取引業者／ベンダー,We compared prices from several vendors.,購買・契約で頻出,700,noun,私たちは複数の業者の価格を比較した。,
+quotation,見積書,見積もり／価格提示／見積価格／見積り書／概算金額,Please send us a quotation by Friday.,取引・購入前の文脈で頻出,700,noun,金曜日までに見積書を送ってください。,
+bid,入札,入札する／提示額／応札／競争入札／申し出,The construction company submitted the lowest bid.,契約・公共事業で頻出,800,noun/verb,その建設会社は最も低い入札額を提出した。,
+audit,監査,会計監査／検査／監査する／調査する／内部監査,The company conducts an internal audit every year.,会計・コンプライアンスで頻出,800,noun/verb,その会社は毎年内部監査を実施している。,
+forecast,予測,予報／見通し／予想する／売上予測／需要予測,The sales forecast was revised upward.,売上・需要予測で頻出,700,noun/verb,売上予測は上方修正された。,
+benchmark,基準,指標／比較基準／目安／ベンチマーク／判断材料,The report uses last year’s results as a benchmark.,比較・評価で頻出,800,noun,その報告書は昨年の結果を基準として使っている。,
+criterion,基準,判断基準／条件／評価基準／選考基準／目安,Price is not the only criterion for selecting a vendor.,選考・評価で頻出,800,noun,価格は業者を選ぶ唯一の基準ではない。,
+feasible,実行可能な,可能な／現実的な／実現できる／無理なくできる／実施できる,The plan is feasible within the current budget.,計画・提案で頻出,800,adj,その計画は現在の予算内で実行可能だ。,
+incentive,奨励金,報奨／動機／インセンティブ／やる気を起こさせるもの／特典,Employees received incentives for high performance.,人事・販売促進で頻出,800,noun,従業員は高い業績に対して報奨を受け取った。,
+initiative,取り組み,新しい計画／主導権／施策／自主的な行動／企画,The company launched an environmental initiative.,会社の施策・CSRで頻出,800,noun,その会社は環境への取り組みを開始した。,
+stakeholder,利害関係者,関係者／出資者／関係組織／影響を受ける人／ステークホルダー,The proposal was shared with all stakeholders.,会議・経営で頻出,800,noun,その提案はすべての利害関係者に共有された。,
+portfolio,ポートフォリオ,商品群／資産構成／事業一覧／保有資産／作品集,The company expanded its product portfolio.,事業・投資で頻出,800,noun,その会社は製品群を拡大した。,
+dividend,配当,配当金／株主配当／利益分配／分配金,Shareholders will receive a higher dividend this year.,財務・株主関連で頻出,800,noun,株主は今年、より高い配当を受け取る予定だ。,
+equity,株主資本,自己資本／公平性／持分／純資産／株式価値,The firm increased its equity investment.,財務・投資で頻出,800,noun,その会社は自己資本投資を増やした。,
+fiscal,会計年度の,財政の／会計上の／年度の／財務に関する,The fiscal year ends in March.,会計・決算で頻出,700,adj,会計年度は3月に終了する。,
+ledger,元帳,会計帳簿／帳簿／記録台帳／取引記録,The accountant checked the ledger for errors.,会計で頻出,800,noun,会計担当者は誤りがないか元帳を確認した。,
+transaction,取引,売買／処理／商取引／取引記録／決済,Each transaction is recorded automatically.,会計・決済で頻出,700,noun,各取引は自動的に記録される。,
+deposit,預金,頭金／保証金／預け入れ／入金／預ける,A deposit is required to reserve the room.,予約・支払いで頻出,700,noun/verb,部屋を予約するには保証金が必要です。,
+withdrawal,引き出し,撤退／取り消し／出金／辞退／回収,There is a fee for early withdrawal.,銀行・契約で頻出,800,noun,早期引き出しには手数料がかかる。,
+mortgage,住宅ローン,抵当／不動産ローン／抵当権／住宅融資,They applied for a mortgage last week.,金融・不動産で頻出,800,noun,彼らは先週、住宅ローンを申請した。,
+premium,保険料,割増料金／上質の／特別な／追加料金,The insurance premium is paid monthly.,保険・料金で頻出,800,noun/adj,保険料は毎月支払われる。,
+coverage,補償範囲,保険範囲／報道／対象範囲／適用範囲,The plan provides medical coverage for employees.,保険・福利厚生で頻出,800,noun,そのプランは従業員に医療補償を提供する。,
+broker,仲介業者,仲介人／ブローカー／代理業者／取引仲介者,The broker helped us find office space.,不動産・金融で頻出,800,noun,その仲介業者は私たちがオフィススペースを見つけるのを助けた。,
+shareholder,株主,出資者／株式保有者／投資家／持株者,Shareholders approved the merger.,経営・財務で頻出,800,noun,株主はその合併を承認した。,
+franchise,フランチャイズ,加盟店／営業権／チェーン店／販売権,The restaurant operates as a franchise.,ビジネス形態で頻出,800,noun,そのレストランはフランチャイズとして運営されている。,
+retailer,小売業者,小売店／販売店／小売会社／店舗業者,Retailers expect strong sales during the holidays.,販売・小売で頻出,700,noun,小売業者は休暇期間中の好調な売上を期待している。,
+wholesaler,卸売業者,卸業者／問屋／大量販売業者／卸売会社,The wholesaler supplies products to local stores.,流通・販売で頻出,800,noun,その卸売業者は地元の店に商品を供給している。,
+consignment,委託販売,委託／預け荷物／委託品／販売委託,The products were sold on consignment.,販売・物流で頻出,800,noun,その商品は委託販売された。,
+backorder,取り寄せ注文,入荷待ち注文／予約注文／在庫切れ注文／後送品,The item is currently on backorder.,在庫・注文で頻出,800,noun,その商品は現在取り寄せ注文中です。,
+dispatch,発送する,派遣する／急送する／送る／出荷する／処理する,The goods were dispatched yesterday afternoon.,物流・配送で頻出,800,verb/noun,商品は昨日の午後に発送された。,
+freight,貨物輸送,貨物／運送料／輸送する／荷物輸送,Freight charges are included in the invoice.,物流・費用で頻出,800,noun,貨物輸送料は請求書に含まれている。,
+customs,税関,関税局／税関手続き／通関／慣習,The shipment was delayed at customs.,国際配送で頻出,700,noun,その出荷品は税関で遅れた。,
+tariff,関税,輸入税／料金表／関税率／通行料金,New tariffs increased import costs.,貿易・国際取引で頻出,800,noun,新しい関税により輸入コストが増加した。,
+logistics,物流,流通管理／配送管理／物資調達／ロジスティクス,The company improved its logistics system.,配送・在庫管理で頻出,800,noun,その会社は物流システムを改善した。,
+carrier,運送業者,輸送会社／通信会社／運搬者／配送業者,The carrier will deliver the package tomorrow.,配送で頻出,700,noun,運送業者は明日その荷物を配達する。,
+tracking,追跡,追跡情報／配送追跡／記録／トラッキング,Tracking information is available online.,配送確認で頻出,700,noun,追跡情報はオンラインで利用できます。,
+shortage,不足,欠品／人手不足／品不足／不足分,There is a shortage of skilled workers.,人事・在庫で頻出,700,noun,熟練労働者が不足している。,
+surplus,余剰,余り／黒字／余剰分／過剰在庫,The warehouse has a surplus of office supplies.,在庫・会計で頻出,800,noun/adj,倉庫には事務用品の余剰がある。,
+component,部品,構成要素／パーツ／成分／部材,Several components need to be replaced.,製造・修理で頻出,700,noun,いくつかの部品を交換する必要がある。,
+calibration,校正,調整／較正／精度調整／測定器の調整,Calibration is performed every six months.,品質管理・測定で頻出,800,noun,校正は6か月ごとに行われる。,
+contamination,汚染,混入／異物混入／汚れ／污染,The test detected contamination in the sample.,品質・衛生で頻出,800,noun,その検査は試料中の汚染を検出した。,
+protocol,手順,規定／実験手順／手続き／規約／手順書,All staff must follow the safety protocol.,安全・実験・ITで頻出,800,noun,全スタッフは安全手順に従わなければならない。,
+hazard,危険,危険要因／有害物／リスク／危険物,The sign warns workers of a potential hazard.,安全管理で頻出,800,noun,その標識は作業員に潜在的な危険を警告している。,
+precaution,予防策,注意／用心／安全対策／事前対策,Wear gloves as a safety precaution.,安全・医療で頻出,800,noun,安全対策として手袋を着用してください。,
+productivity,生産性,効率／作業効率／生産能力／能率,The new system increased productivity.,業務改善・製造で頻出,700,noun,新しいシステムは生産性を高めた。,
+capacity,能力,収容能力／生産能力／容量／処理能力,The factory is operating at full capacity.,製造・施設で頻出,700,noun,その工場はフル稼働している。,
+output,生産量,出力／成果物／産出量／生産高,Monthly output increased by 15 percent.,製造・業績で頻出,700,noun,月間生産量は15％増加した。,
+defect,欠陥,不具合／不良／欠点／欠陥品,The defect was found during inspection.,品質管理で頻出,700,noun,その欠陥は検査中に見つかった。,
