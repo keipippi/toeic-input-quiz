@@ -1,4 +1,31 @@
-word,meaning,accepted_answers,example,note
-increase,増加する,増える／上がる／増やす,Sales increased last year.,TOEICでは売上・費用・需要などでよく使う
-implement,実行する,実施する／導入する／実装する,The company implemented a new policy.,policyやplanと一緒に出やすい
-provide,提供する,与える／供給する,The hotel provides free breakfast.,provide A with B の形も重要
+word,meaning,accepted_answers,example,note,level
+increase,増加する,増える／上がる／増やす,Sales increased last year.,売上・費用・需要で頻出,600
+implement,実行する,実施する／導入する／実装する,The company implemented a new policy.,policyやplanと相性が良い,730
+provide,提供する,与える／供給する,The hotel provides free breakfast.,provide A with Bも重要,600
+require,必要とする,求める／要求する,This position requires experience.,求人や条件で頻出,600
+purchase,購入する,買う／購買する,Please keep your purchase receipt.,名詞で購入品の意味もある,600
+available,利用できる,入手可能な／空いている／対応可能な,The room is available after 3 p.m.,人にも物にも使える,600
+confirm,確認する,確かめる／承認する,Please confirm your reservation.,予約確認で頻出,600
+delay,遅れ,遅延／遅らせる,The flight was delayed due to weather.,名詞・動詞どちらも出る,600
+annual,年1回の,毎年の／年間の,The annual meeting will be held in June.,annual reportも頻出,730
+refund,返金,払い戻し／返金する,You can request a refund within 30 days.,名詞・動詞どちらも使う,600
+appointment,予約,約束／面会の約束,I have an appointment at 2 p.m.,病院や面談の予約,600
+invoice,請求書,送り状／インボイス,The invoice was sent yesterday.,ビジネス文書で頻出,730
+facility,施設,設備／機能,The new facility opened last month.,工場・会議施設など,600
+indicate,示す,指し示す／表す,The sign indicates the entrance.,資料やグラフでも使う,730
+additional,追加の,さらに多くの／別の,Additional information is required.,書類・料金で頻出,600
+reduce,減らす,削減する／低下させる,The company reduced costs.,costやwasteと相性が良い,600
+expand,拡大する,広げる／拡張する,The company plans to expand overseas.,事業拡大で頻出,730
+maintain,維持する,保つ／整備する,Please maintain a clean workspace.,状態維持・設備保守,730
+submit,提出する,送信する／差し出す,Please submit the form by Friday.,書類提出で頻出,600
+participate,参加する,加わる／出席する,Employees are encouraged to participate.,イベント・会議で頻出,600
+postpone,延期する,先延ばしにする,The meeting was postponed until Monday.,会議・予定で頻出,730
+negotiate,交渉する,話し合う／取り決める,They negotiated a new contract.,契約や価格交渉,860
+approximately,およそ,約／だいたい,The trip takes approximately two hours.,数字と一緒に出る,730
+mandatory,必須の,義務的な／強制の,Attendance is mandatory.,ルールや研修で頻出,860
+complaint,苦情,不満／クレーム,The manager handled the complaint.,顧客対応で頻出,730
+reliable,信頼できる,頼りになる／確実な,We need a reliable supplier.,人・会社・物に使う,730
+temporary,一時的な,臨時の／仮の,This is a temporary solution.,temporary positionも頻出,600
+appropriate,適切な,ふさわしい／妥当な,Please wear appropriate clothing.,服装・対応・方法で使う,730
+significant,重要な,かなりの／著しい,There was a significant increase in sales.,変化や差を強調,860
+comprehensive,包括的な,総合的な／広範囲の,The report provides a comprehensive overview.,レポートや計画で頻出,860
