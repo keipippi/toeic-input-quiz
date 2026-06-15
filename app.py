@@ -164,6 +164,33 @@ def apply_mobile_styles():
             font-size: 0.9rem;
             margin: 0.5rem 0;
         }
+        .st-key-card_primary_actions div[data-testid="stHorizontalBlock"],
+        .st-key-card_secondary_actions div[data-testid="stHorizontalBlock"] {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 0.5rem;
+        }
+        .st-key-card_primary_actions div[data-testid="column"],
+        .st-key-card_secondary_actions div[data-testid="column"] {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            width: 50% !important;
+        }
+        .st-key-card_primary_actions .stButton > button {
+            min-height: 3.4rem;
+            font-weight: 700;
+        }
+        .st-key-card_weak button {
+            border-color: #fecaca;
+            background: #fff7f7;
+            color: #991b1b;
+        }
+        .st-key-card_known button {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+        }
         .app-kicker {
             color: #475569;
             font-size: 0.95rem;
@@ -179,6 +206,11 @@ def apply_mobile_styles():
             }
             h2, h3 {
                 font-size: 1.25rem !important;
+            }
+            .st-key-card_primary_actions div[data-testid="column"],
+            .st-key-card_secondary_actions div[data-testid="column"] {
+                width: 50% !important;
+                flex: 1 1 0 !important;
             }
         }
         </style>
@@ -242,6 +274,21 @@ def choose_direction(direction):
     return random.choice(["英→日", "日→英"]) if direction == "ランダム" else direction
 
 
+def scroll_to_top_on_new_question():
+    token = st.session_state.get("scroll_to_top_token", 0)
+    if st.session_state.get("last_scroll_to_top_token") == token:
+        return
+    st.session_state.last_scroll_to_top_token = token
+    components.html(
+        """
+        <script>
+        window.parent.scrollTo({ top: 0, behavior: "smooth" });
+        </script>
+        """,
+        height=0,
+    )
+
+
 def quiz_signature(qdf, mode, levels, direction, user_name, prefer_weak):
     return {
         "mode": mode,
@@ -259,6 +306,7 @@ def set_question(word, direction):
     st.session_state.card_flipped = False
     st.session_state.last = None
     st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
+    st.session_state.scroll_to_top_token = st.session_state.get("scroll_to_top_token", 0) + 1
 
 
 def start_ten_question_round(qdf, direction, history, prefer_weak):
@@ -532,6 +580,7 @@ if "answer_version" not in st.session_state:
     st.session_state.answer_version = 0
 
 ensure_quiz_state(qdf, history, mode, levels, direction, user_name, prefer_weak)
+scroll_to_top_on_new_question()
 
 if mode == TEN_QUESTION_MODE and st.session_state.get("ten_finished"):
     results = st.session_state.get("ten_results", [])
@@ -586,6 +635,28 @@ if mode == CARD_MODE:
     if prefer_weak:
         st.caption(priority_label(row["word"], history))
 
+    with st.container(key="card_secondary_actions"):
+        flip_cols = st.columns(2, gap="small")
+        with flip_cols[0]:
+            if st.button("めくる" if not st.session_state.get("card_flipped", False) else "表に戻す"):
+                st.session_state.card_flipped = not st.session_state.get("card_flipped", False)
+                st.rerun()
+        with flip_cols[1]:
+            if st.button("次のカード"):
+                go_next(qdf, history, mode, direction, prefer_weak)
+
+    st.markdown('<div class="card-hint"><span>← 苦手</span><span>覚えた →</span></div>', unsafe_allow_html=True)
+    with st.container(key="card_primary_actions"):
+        result_cols = st.columns(2, gap="small")
+        with result_cols[0]:
+            with st.container(key="card_weak"):
+                if st.button("苦手"):
+                    record_card_result(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak)
+        with result_cols[1]:
+            with st.container(key="card_known"):
+                if st.button("覚えた", type="primary"):
+                    record_card_result(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak)
+
     if st.session_state.get("card_flipped", False):
         st.markdown(
             f"""
@@ -602,24 +673,6 @@ if mode == CARD_MODE:
             st.write(row["example"])
             st.write(row["example_ja"])
             st.write(row["note"])
-
-    st.markdown('<div class="card-hint"><span>苦手</span><span>覚えた</span></div>', unsafe_allow_html=True)
-    result_cols = st.columns([1, 1])
-    with result_cols[0]:
-        if st.button("← 苦手", type="secondary"):
-            record_card_result(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak)
-    with result_cols[1]:
-        if st.button("覚えた →", type="primary"):
-            record_card_result(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak)
-
-    flip_cols = st.columns(2)
-    with flip_cols[0]:
-        if st.button("めくる" if not st.session_state.get("card_flipped", False) else "表に戻す"):
-            st.session_state.card_flipped = not st.session_state.get("card_flipped", False)
-            st.rerun()
-    with flip_cols[1]:
-        if st.button("次のカード"):
-            go_next(qdf, history, mode, direction, prefer_weak)
 
     tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
 
