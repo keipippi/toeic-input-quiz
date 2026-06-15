@@ -10,6 +10,10 @@ USERS_TABLE = "toeic_users"
 HISTORY_TABLE = "toeic_history"
 
 
+class StorageError(RuntimeError):
+    pass
+
+
 def get_setting(name: str) -> str:
     value = os.environ.get(name, "")
     if value:
@@ -39,8 +43,15 @@ def supabase_request(method: str, table: str, params=None, json=None):
         "Content-Type": "application/json",
         "Prefer": "return=representation",
     }
-    response = requests.request(method, url, headers=headers, params=params, json=json, timeout=15)
-    response.raise_for_status()
+    try:
+        response = requests.request(method, url, headers=headers, params=params, json=json, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        detail = ""
+        response = getattr(exc, "response", None)
+        if response is not None:
+            detail = f" ({response.status_code}: {response.text[:200]})"
+        raise StorageError(f"Supabaseへの接続に失敗しました{detail}") from exc
     if response.text:
         return response.json()
     return []

@@ -158,6 +158,8 @@ SUPABASE_KEY = "your-supabase-key"
 
 個人利用ならservice role keyでも動かせますが、公開範囲が広い場合は権限設計を見直してください。
 
+詳しい手順は `SUPABASE_SETUP.md` を参照してください。
+
 ## ファイル構成
 
 ```text
@@ -168,7 +170,9 @@ SUPABASE_KEY = "your-supabase-key"
 ├── quiz.py
 ├── requirements.txt
 ├── README.md
+├── secrets.example.toml
 ├── storage.py
+├── SUPABASE_SETUP.md
 ├── supabase_schema.sql
 ├── words.py
 └── words.csv
@@ -180,3 +184,4 @@ SUPABASE_KEY = "your-supabase-key"
 - `history.py`: ユーザー別履歴の読み込み、保存、復習日計算
 - `quiz.py`: 解答判定、出題対象の絞り込み、苦手単語の優先度計算
 - `storage.py`: CSV保存とSupabase保存の切り替え
+- `SUPABASE_SETUP.md`: Supabase設定手順
