@@ -30,6 +30,7 @@ from words import (
     validate_new_word,
 )
 from storage import storage_label
+from storage import StorageError
 
 TEN_QUESTION_MODE = "10問連続"
 CARD_MODE = "カード"
@@ -199,7 +200,11 @@ def render_login():
             login_pin = st.text_input("PIN", type="password", placeholder="4文字以上")
             submitted = st.form_submit_button("ログイン")
         if submitted:
-            ok, user_id, message = verify_user(login_name, login_pin)
+            try:
+                ok, user_id, message = verify_user(login_name, login_pin)
+            except StorageError as exc:
+                st.error(str(exc))
+                return None
             if ok:
                 st.session_state.authenticated_user = user_id
                 st.success(message)
@@ -217,7 +222,11 @@ def render_login():
             if signup_pin != signup_pin_confirm:
                 st.error("PINが一致しません。")
             else:
-                ok, user_id, message = create_user(signup_name, signup_pin)
+                try:
+                    ok, user_id, message = create_user(signup_name, signup_pin)
+                except StorageError as exc:
+                    st.error(str(exc))
+                    return None
                 if ok:
                     st.session_state.authenticated_user = user_id
                     st.success(message)
