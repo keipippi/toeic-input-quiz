@@ -30,12 +30,19 @@ def supabase_configured() -> bool:
     return bool(get_setting("SUPABASE_URL") and get_setting("SUPABASE_KEY"))
 
 
+def supabase_base_url() -> str:
+    url = get_setting("SUPABASE_URL").strip().rstrip("/")
+    if url.endswith("/rest/v1"):
+        url = url[:-len("/rest/v1")]
+    return url
+
+
 def storage_label() -> str:
     return "Supabase" if supabase_configured() else "CSV"
 
 
 def supabase_request(method: str, table: str, params=None, json=None):
-    url = get_setting("SUPABASE_URL").rstrip("/") + f"/rest/v1/{table}"
+    url = supabase_base_url() + f"/rest/v1/{table}"
     key = get_setting("SUPABASE_KEY")
     headers = {
         "apikey": key,
