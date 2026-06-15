@@ -39,10 +39,11 @@ def supabase_request(method: str, table: str, params=None, json=None):
     key = get_setting("SUPABASE_KEY")
     headers = {
         "apikey": key,
-        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
         "Prefer": "return=representation",
     }
+    if not key.startswith("sb_"):
+        headers["Authorization"] = f"Bearer {key}"
     try:
         response = requests.request(method, url, headers=headers, params=params, json=json, timeout=15)
         response.raise_for_status()
