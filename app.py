@@ -1,317 +1,35 @@
 import html
 import random
-import re
-import unicodedata
-from datetime import datetime, timedelta
-from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-APP_DIR = Path(__file__).parent
-WORDS_PATH = APP_DIR / "words.csv"
-REVIEW_STEPS = [1, 3, 7, 14, 30]
-REQUIRED_COLUMNS = ["word", "meaning", "accepted_answers", "example", "note", "level", "pos", "example_ja", "ipa"]
-LEVEL_ORDER = ["600", "700", "800"]
-LEVEL_PRESETS = {
-    "600だけ": ["600"],
-    "600+700": ["600", "700"],
-    "全部": ["600", "700", "800"],
-    "手動で選ぶ": [],
-}
+from history import history_path, load_history, safe_user_id, save_history
+from quiz import (
+    choose_weighted_word,
+    judge_answer,
+    label,
+    make_quiz_df,
+    priority_label,
+    priority_scores,
+    weighted_words,
+)
+from words import (
+    LEVEL_ORDER,
+    LEVEL_PRESETS,
+    REQUIRED_COLUMNS,
+    append_word_to_csv,
+    clean_form_value,
+    load_base_words,
+    prepare_words,
+    quality_report,
+    validate_new_word,
+)
+
 TEN_QUESTION_MODE = "10問連続"
 CARD_MODE = "カード"
 WEAK_PRIORITY_DEFAULT = True
-
-
-def safe_user_id(name: str) -> str:
-    name = unicodedata.normalize("NFKC", str(name)).strip()
-    name = re.sub(r"[^0-9A-Za-zぁ-んァ-ン一-龥_-]+", "_", name)
-    return name[:40] if name else "guest"
-
-
-def history_path(user_name: str) -> Path:
-    return APP_DIR / f"history_{safe_user_id(user_name)}.csv"
-
-
-def normalize_level(value) -> str:
-    s = str(value).strip()
-    if s in ["600", "600点", "TOEIC600"]:
-        return "600"
-    if s in ["700", "730", "730-860", "730〜860", "730–860", "TOEIC730"]:
-        return "700"
-    if s in ["800", "860", "860+", "900", "900+", "TOEIC860"]:
-        return "800"
-    try:
-        n = int(float(s))
-        if n < 700:
-            return "600"
-        if n < 800:
-            return "700"
-        return "800"
-    except Exception:
-        return "600"
-
-
-def normalize_text(text: str) -> str:
-    if text is None:
-        return ""
-    text = unicodedata.normalize("NFKC", str(text)).strip().lower()
-    text = re.sub(r"[、，,／/・\s\n\t]+", "", text)
-    text = text.replace("すること", "する")
-    text = text.replace("です", "").replace("ます", "")
-    text = text.replace("を", "").replace("が", "").replace("に", "").replace("へ", "")
-    return text
-
-
-def split_answers(text: str) -> list[str]:
-    if pd.isna(text):
-        return []
-    return [p.strip() for p in re.split(r"[、，,／/;；|｜]", str(text)) if p.strip()]
-
-
-def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-    for col in REQUIRED_COLUMNS:
-        if col not in df.columns:
-            df[col] = ""
-    df["level"] = df["level"].apply(normalize_level)
-    df = df[REQUIRED_COLUMNS]
-    df = df.dropna(subset=["word", "meaning"])
-    df["word"] = df["word"].astype(str).str.strip()
-    return df[df["word"] != ""]
-
-
-def normalize_word_key(word: str) -> str:
-    return unicodedata.normalize("NFKC", str(word)).strip().lower()
-
-
-def clean_form_value(value: str) -> str:
-    return unicodedata.normalize("NFKC", str(value)).strip()
-
-
-def validate_new_word(row: dict, existing_df: pd.DataFrame) -> list[str]:
-    errors = []
-    required = {
-        "word": "英単語",
-        "meaning": "意味",
-        "accepted_answers": "許容表現",
-        "example": "例文",
-        "pos": "品詞",
-        "example_ja": "例文の日本語訳",
-    }
-    for key, label_text in required.items():
-        if not row.get(key):
-            errors.append(f"{label_text}を入力してください。")
-    existing_keys = set(existing_df["word"].astype(str).map(normalize_word_key))
-    if normalize_word_key(row.get("word", "")) in existing_keys:
-        errors.append("同じ英単語がすでに登録されています。")
-    return errors
-
-
-def append_word_to_csv(row: dict):
-    current = pd.read_csv(WORDS_PATH)
-    for col in REQUIRED_COLUMNS:
-        if col not in current.columns:
-            current[col] = ""
-    next_df = pd.concat([current[REQUIRED_COLUMNS], pd.DataFrame([row], columns=REQUIRED_COLUMNS)], ignore_index=True)
-    next_df.to_csv(WORDS_PATH, index=False)
-    load_base_words.clear()
-
-
-def quality_report(words_df: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
-    report_df = words_df.copy()
-    report_df["word_key"] = report_df["word"].astype(str).map(normalize_word_key)
-    issues = []
-    optional_columns = {"ipa", "note"}
-    for index, row in report_df.iterrows():
-        word = str(row["word"])
-        for col in REQUIRED_COLUMNS:
-            if col in optional_columns:
-                continue
-            value = row.get(col, "")
-            if pd.isna(value) or str(value).strip() == "":
-                issues.append({"word": word, "issue": f"{col} が空欄です", "row": index + 2})
-        if str(row.get("level", "")) not in LEVEL_ORDER:
-            issues.append({"word": word, "issue": "level が 600 / 700 / 800 以外です", "row": index + 2})
-        if len(split_answers(row.get("accepted_answers", ""))) == 0:
-            issues.append({"word": word, "issue": "accepted_answers が分割できません", "row": index + 2})
-
-    duplicated = report_df[report_df["word_key"].duplicated(keep=False)].sort_values("word_key")
-    for _, row in duplicated.iterrows():
-        issues.append({"word": row["word"], "issue": "英単語が重複しています", "row": int(row.name) + 2})
-
-    issue_df = pd.DataFrame(issues, columns=["row", "word", "issue"])
-    summary = {
-        "total": len(words_df),
-        "duplicates": int(report_df["word_key"].duplicated().sum()),
-        "issues": len(issue_df),
-        "missing_ipa": int(words_df["ipa"].isna().sum() + words_df["ipa"].astype(str).str.strip().eq("").sum()),
-    }
-    return summary, issue_df
-
-
-@st.cache_data
-def load_base_words() -> pd.DataFrame:
-    return prepare_words(pd.read_csv(WORDS_PATH))
-
-
-def load_history(user_name: str) -> pd.DataFrame:
-    cols = ["timestamp", "user", "word", "direction", "user_answer", "result", "mode", "reason", "next_review"]
-    path = history_path(user_name)
-    if path.exists():
-        df = pd.read_csv(path)
-        for c in cols:
-            if c not in df.columns:
-                df[c] = user_name if c == "user" else ""
-        return df[cols]
-    return pd.DataFrame(columns=cols)
-
-
-def next_review_date(word: str, result: str, history: pd.DataFrame) -> str:
-    today = datetime.now().date()
-    if result == "wrong":
-        return str(today + timedelta(days=1))
-    if result == "almost":
-        return str(today + timedelta(days=3))
-    correct_count = len(history[(history["word"] == word) & (history["result"] == "correct")])
-    days = REVIEW_STEPS[min(correct_count, len(REVIEW_STEPS) - 1)]
-    return str(today + timedelta(days=days))
-
-
-def save_history(user_name, word, direction, user_answer, result, mode, reason, history):
-    row = pd.DataFrame([{
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "user": user_name,
-        "word": word,
-        "direction": direction,
-        "user_answer": user_answer,
-        "result": result,
-        "mode": mode,
-        "reason": reason,
-        "next_review": next_review_date(word, result, history),
-    }])
-    pd.concat([history, row], ignore_index=True).to_csv(history_path(user_name), index=False)
-
-
-def judge_answer(row, answer, direction):
-    user = normalize_text(answer)
-    if not user:
-        return {"result": "wrong", "mode": "未入力", "reason": "答えを入力してください。"}
-    if direction == "英→日":
-        corrects = split_answers(row["meaning"])
-        accepts = split_answers(row["accepted_answers"])
-        all_ok = corrects + accepts
-    else:
-        corrects = [str(row["word"])]
-        accepts = []
-        all_ok = corrects
-    for a in corrects:
-        if user == normalize_text(a):
-            return {"result": "correct", "mode": "完全一致", "reason": "正解訳と完全一致しました。"}
-    for a in accepts:
-        if user == normalize_text(a):
-            return {"result": "correct", "mode": "類義語一致", "reason": f"『{a}』は許容訳として登録されています。"}
-    for a in all_ok:
-        aa = normalize_text(a)
-        if len(user) >= 2 and len(aa) >= 2 and (user in aa or aa in user):
-            return {"result": "almost", "mode": "部分一致", "reason": f"『{a}』に近いですが、少し短い/広い表現です。"}
-    return {"result": "wrong", "mode": "辞書判定", "reason": "登録されている正解・類義語とは一致しませんでした。"}
-
-
-def label(r):
-    return {"correct": "✅ 正解", "almost": "△ ほぼ正解", "wrong": "❌ 不正解"}.get(r, r)
-
-
-def make_quiz_df(df, history, mode, levels):
-    q = df[df["level"].astype(str).isin([str(x) for x in levels])] if levels else df.copy()
-    today = datetime.now().date()
-    if mode == "間違えた単語だけ":
-        words = history.loc[history["result"].isin(["wrong", "almost"]), "word"].unique().tolist()
-        q = q[q["word"].isin(words)]
-    elif mode == "復習期限の単語":
-        h = history.copy()
-        h["next_review_dt"] = pd.to_datetime(h["next_review"], errors="coerce").dt.date
-        words = h.loc[h["next_review_dt"].le(today), "word"].unique().tolist()
-        q = q[q["word"].isin(words)]
-    return q
-
-
-def priority_scores(qdf: pd.DataFrame, history: pd.DataFrame) -> dict[str, float]:
-    scores = {word: 1.0 for word in qdf["word"].astype(str)}
-    if history.empty:
-        return scores
-
-    h = history.copy()
-    h["timestamp_dt"] = pd.to_datetime(h["timestamp"], errors="coerce")
-    h["next_review_dt"] = pd.to_datetime(h["next_review"], errors="coerce").dt.date
-    today = datetime.now().date()
-
-    for word, group in h.groupby("word"):
-        word = str(word)
-        if word not in scores:
-            continue
-        attempts = len(group)
-        correct = int(group["result"].eq("correct").sum())
-        wrong = int(group["result"].eq("wrong").sum())
-        almost = int(group["result"].eq("almost").sum())
-        accuracy = correct / attempts if attempts else 0
-        score = 1.0
-        score += wrong * 2.0
-        score += almost * 1.2
-        score += (1 - accuracy) * 3.0
-
-        latest = group.sort_values("timestamp_dt").tail(1).iloc[0]
-        if latest["result"] == "wrong":
-            score += 2.0
-        elif latest["result"] == "almost":
-            score += 1.2
-
-        due_dates = group["next_review_dt"].dropna()
-        if len(due_dates) and due_dates.max() <= today:
-            overdue_days = max((today - due_dates.max()).days, 0)
-            score += 2.5 + min(overdue_days, 7) * 0.25
-
-        scores[word] = round(score, 3)
-    return scores
-
-
-def choose_weighted_word(qdf: pd.DataFrame, history: pd.DataFrame, prefer_weak: bool) -> str:
-    words = qdf["word"].astype(str).tolist()
-    if not prefer_weak:
-        return random.choice(words)
-    scores = priority_scores(qdf, history)
-    weights = [scores.get(word, 1.0) for word in words]
-    return random.choices(words, weights=weights, k=1)[0]
-
-
-def weighted_words(qdf: pd.DataFrame, history: pd.DataFrame, prefer_weak: bool, limit: int) -> list[str]:
-    words = qdf["word"].astype(str).tolist()
-    if not prefer_weak:
-        random.shuffle(words)
-        return words[:limit]
-
-    scores = priority_scores(qdf, history)
-    remaining = words.copy()
-    selected = []
-    while remaining and len(selected) < limit:
-        weights = [scores.get(word, 1.0) for word in remaining]
-        picked = random.choices(remaining, weights=weights, k=1)[0]
-        selected.append(picked)
-        remaining.remove(picked)
-    return selected
-
-
-def priority_label(word: str, history: pd.DataFrame) -> str:
-    if history.empty or word not in set(history["word"].astype(str)):
-        return "初出"
-    word_history = history[history["word"].astype(str) == str(word)]
-    attempts = len(word_history)
-    correct = int(word_history["result"].eq("correct").sum())
-    wrong = int(word_history["result"].ne("correct").sum())
-    accuracy = correct / attempts * 100 if attempts else 0
-    return f"苦手度: {wrong}回ミス / 正解率 {accuracy:.0f}%"
 
 
 def speech_button(word: str):
