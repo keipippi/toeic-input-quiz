@@ -43,6 +43,19 @@ def split_answers(text: str) -> list[str]:
     return [p.strip() for p in re.split(r"[、，,／/;；|｜]", str(text)) if p.strip()]
 
 
+def clean_accepted_answers(meaning: str, accepted_answers: str) -> str:
+    meaning_key = normalize_word_key(meaning)
+    cleaned = []
+    seen = set()
+    for answer in split_answers(accepted_answers):
+        key = normalize_word_key(answer)
+        if key == meaning_key or key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(answer)
+    return "／".join(cleaned)
+
+
 def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     for col in REQUIRED_COLUMNS:
@@ -52,6 +65,7 @@ def prepare_words(df: pd.DataFrame) -> pd.DataFrame:
     df = df[REQUIRED_COLUMNS]
     df = df.dropna(subset=["word", "meaning"])
     df["word"] = df["word"].astype(str).str.strip()
+    df["accepted_answers"] = df.apply(lambda row: clean_accepted_answers(row["meaning"], row["accepted_answers"]), axis=1)
     return df[df["word"] != ""]
 
 
