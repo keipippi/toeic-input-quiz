@@ -31,6 +31,34 @@ from words import (
 TEN_QUESTION_MODE = "10問連続"
 CARD_MODE = "カード"
 WEAK_PRIORITY_DEFAULT = True
+MODE_OPTIONS = [
+    {
+        "label": "通常練習",
+        "mode": "全単語",
+        "description": "選んだレベルの単語から入力式で練習します。",
+    },
+    {
+        "label": "10問チャレンジ",
+        "mode": TEN_QUESTION_MODE,
+        "description": "10問を1セットにして、最後に結果を確認します。",
+    },
+    {
+        "label": "カード学習",
+        "mode": CARD_MODE,
+        "description": "単語カードをめくりながら暗記します。",
+    },
+    {
+        "label": "苦手復習",
+        "mode": "間違えた単語だけ",
+        "description": "過去に間違えた単語や、ほぼ正解だった単語を復習します。",
+    },
+    {
+        "label": "期限復習",
+        "mode": "復習期限の単語",
+        "description": "今日までに復習予定になっている単語を出題します。",
+    },
+]
+MODE_LABEL_TO_OPTION = {option["label"]: option for option in MODE_OPTIONS}
 
 
 def speech_button(word: str):
@@ -338,9 +366,17 @@ with st.sidebar:
         levels = [lv for lv in LEVEL_PRESETS[preset] if lv in available_levels]
         st.caption("選択中: " + (" / ".join(levels) if levels else "該当レベルなし"))
 
+    mode_label = st.radio("学習メニュー", [option["label"] for option in MODE_OPTIONS], index=0)
+    mode_option = MODE_LABEL_TO_OPTION[mode_label]
+    mode = mode_option["mode"]
+    st.caption(mode_option["description"])
+
     direction = st.radio("出題方向", ["英→日", "日→英", "ランダム"], index=0)
-    mode = st.radio("出題モード", ["全単語", TEN_QUESTION_MODE, CARD_MODE, "間違えた単語だけ", "復習期限の単語"], index=0)
     prefer_weak = st.checkbox("苦手単語を優先", value=WEAK_PRIORITY_DEFAULT)
+    st.info(
+        f"{mode_label} / {direction} / "
+        + (" / ".join(levels) if levels else "レベル未選択")
+    )
     st.success(f"読み込み語数: {len(df)}語")
 
 history = load_history(user_name)
@@ -375,6 +411,10 @@ if mode == TEN_QUESTION_MODE and st.session_state.get("ten_finished"):
 
 row = qdf[qdf["word"] == st.session_state.quiz_word].iloc[0]
 actual_direction = st.session_state.quiz_direction
+st.caption(
+    f"学習メニュー: {mode_label} / 今回: {actual_direction} / "
+    f"レベル: {', '.join(levels) if levels else '未選択'}"
+)
 
 if mode == CARD_MODE:
     if actual_direction == "英→日":
