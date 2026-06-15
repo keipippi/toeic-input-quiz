@@ -99,6 +99,9 @@ def apply_mobile_styles():
             max-width: 100%;
             overflow-x: hidden;
         }
+        * {
+            box-sizing: border-box;
+        }
         .stApp {
             background: #f8fafc;
         }
@@ -116,6 +119,10 @@ def apply_mobile_styles():
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 0.75rem;
+            min-height: 6.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .stButton > button,
         .stDownloadButton > button,
@@ -193,6 +200,10 @@ def apply_mobile_styles():
             overflow-x: auto;
             max-width: 100%;
         }
+        div[data-testid="stDataFrame"] {
+            max-width: 100%;
+            overflow-x: auto;
+        }
         @media (max-width: 640px) {
             .block-container {
                 padding-left: 0.85rem;
@@ -204,6 +215,9 @@ def apply_mobile_styles():
             }
             h2, h3 {
                 font-size: 1.25rem !important;
+            }
+            div[data-testid="stMetric"] {
+                min-height: 5.75rem;
             }
         }
         </style>
@@ -421,12 +435,12 @@ def render_score_dashboard(history, words_df, user_name):
     total_rate = h["result"].eq("correct").mean() * 100
     today_rate = today_history["result"].eq("correct").mean() * 100 if len(today_history) else 0
 
-    top_cols = st.columns(3)
+    top_cols = st.columns(3, gap="small")
     top_cols[0].metric("今日の学習", f"{len(today_history)}問")
     top_cols[1].metric("今日の正解率", f"{today_rate:.1f}%")
     top_cols[2].metric("連続学習", f"{learning_streak(h)}日")
 
-    bottom_cols = st.columns(3)
+    bottom_cols = st.columns(3, gap="small")
     bottom_cols[0].metric("累計解答", f"{len(h)}問")
     bottom_cols[1].metric("累計正解率", f"{total_rate:.1f}%")
     bottom_cols[2].metric("復習待ち", f"{len(due_table)}語")
@@ -468,7 +482,7 @@ def render_quality_panel():
     st.subheader("品質チェック")
     raw_words = pd.read_csv(WORDS_PATH)
     summary, issue_df = quality_report(raw_words)
-    q1, q2, q3 = st.columns(3)
+    q1, q2, q3 = st.columns(3, gap="small")
     q1.metric("登録語数", summary["total"])
     q2.metric("重複", summary["duplicates"])
     q3.metric("要確認", summary["issues"])
@@ -508,7 +522,7 @@ with st.sidebar:
     st.header("ユーザー")
     st.caption(f"現在のユーザー: {user_name}")
     st.caption(f"保存先: {storage_label()}")
-    if st.button("ログアウト"):
+    if st.button("ログアウト", use_container_width=True):
         for key in [
             "authenticated_user",
             "quiz_signature",
@@ -581,13 +595,13 @@ if mode == TEN_QUESTION_MODE and st.session_state.get("ten_finished"):
     almost_count = sum(1 for r in results if r["result"] == "almost")
     wrong_count = sum(1 for r in results if r["result"] == "wrong")
     st.subheader("10問の結果")
-    m1, m2, m3 = st.columns(3)
+    m1, m2, m3 = st.columns(3, gap="small")
     m1.metric("正解", correct_count)
     m2.metric("ほぼ正解", almost_count)
     m3.metric("不正解", wrong_count)
     if results:
         st.dataframe(pd.DataFrame(results)[["word", "result", "user_answer"]], use_container_width=True, hide_index=True)
-    if st.button("もう一度10問に挑戦"):
+    if st.button("もう一度10問に挑戦", use_container_width=True):
         start_ten_question_round(qdf, direction, history, prefer_weak)
         st.rerun()
     st.stop()
@@ -770,20 +784,20 @@ if st.session_state.last:
         st.write(row["example_ja"])
         st.write(row["note"])
 
-action_cols = st.columns(2)
+action_cols = st.columns(2, gap="small")
 with action_cols[0]:
     next_disabled = mode == TEN_QUESTION_MODE and not st.session_state.last
-    if st.button("次の問題", disabled=next_disabled):
+    if st.button("次の問題", disabled=next_disabled, use_container_width=True):
         go_next(qdf, history, mode, direction, prefer_weak)
 with action_cols[1]:
-    if st.button("答えを見る"):
+    if st.button("答えを見る", use_container_width=True):
         st.info(f"英単語: {row['word']} / 意味: {row['meaning']} / 許容訳: {row['accepted_answers']}")
 
 tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
 
 with tab_score:
     render_score_dashboard(history, df, user_name)
-    if st.button("このユーザーの履歴リセット"):
+    if st.button("このユーザーの履歴リセット", use_container_width=True):
         clear_history(user_name)
         st.session_state.last = None
         st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
