@@ -137,7 +137,6 @@ def apply_mobile_styles():
             padding: 1.1rem;
             background: #ffffff;
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-            text-align: center;
             width: 100%;
             box-sizing: border-box;
         }
@@ -146,12 +145,11 @@ def apply_mobile_styles():
             line-height: 1.1;
             font-weight: 700;
             overflow-wrap: anywhere;
-            margin: 0.35rem auto 0.4rem;
+            margin: 0.25rem 0 0.5rem;
         }
         .quiz-meta {
             color: #64748b;
             font-size: 0.9rem;
-            text-align: center;
         }
         .card-back {
             margin-top: 0.9rem;
@@ -161,16 +159,14 @@ def apply_mobile_styles():
             line-height: 1.25;
             font-weight: 700;
             overflow-wrap: anywhere;
-            margin: 0.35rem auto 0.75rem;
+            margin: 0.25rem 0 0.75rem;
         }
         .card-hint {
-            display: flex;
-            justify-content: space-between;
-            gap: 0.75rem;
             color: #64748b;
             font-size: 0.9rem;
-            margin: 0.55rem 0 0.25rem;
-            padding: 0 0.15rem;
+            margin: 0.65rem auto 0.25rem;
+            max-width: 360px;
+            text-align: center;
         }
         .st-key-card_primary_actions div[data-testid="stHorizontalBlock"],
         .st-key-card_secondary_actions div[data-testid="stHorizontalBlock"] {
@@ -178,6 +174,8 @@ def apply_mobile_styles():
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 0.5rem;
             width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
             align-items: stretch;
         }
         .st-key-card_primary_actions div[data-testid="column"],
@@ -187,9 +185,7 @@ def apply_mobile_styles():
             max-width: none !important;
         }
         .st-key-card_primary_actions .stButton,
-        .st-key-card_secondary_actions .stButton,
-        .st-key-card_weak,
-        .st-key-card_known {
+        .st-key-card_secondary_actions .stButton {
             width: 100%;
             min-width: 0;
         }
@@ -210,12 +206,12 @@ def apply_mobile_styles():
         .st-key-card_secondary_actions .stButton > button {
             min-height: 2.8rem;
         }
-        .st-key-card_weak button {
+        .st-key-card_primary_actions div[data-testid="column"]:first-child button {
             border-color: #fecaca;
             background: #fff7f7;
             color: #991b1b;
         }
-        .st-key-card_known button {
+        .st-key-card_primary_actions div[data-testid="column"]:last-child button {
             border-color: #bbf7d0;
             background: #f0fdf4;
             color: #166534;
@@ -658,7 +654,7 @@ if mode == CARD_MODE:
     st.markdown(
         f"""
         <div class="quiz-card">
-          <div class="quiz-meta">Level {row['level']} ・ {row['pos']} ・ {actual_direction}</div>
+          <div class="quiz-meta">Level {row['level']} / {row['pos']} / {actual_direction}</div>
           <div class="quiz-word">{html.escape(str(card_front))}</div>
         </div>
         """,
@@ -679,17 +675,15 @@ if mode == CARD_MODE:
             if st.button("次のカード"):
                 go_next(qdf, history, mode, direction, prefer_weak)
 
-    st.markdown('<div class="card-hint"><span>左: 苦手</span><span>右: 覚えた</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-hint">左: 苦手 / 右: 覚えた</div>', unsafe_allow_html=True)
     with st.container(key="card_primary_actions"):
         result_cols = st.columns(2, gap="small")
         with result_cols[0]:
-            with st.container(key="card_weak"):
-                if st.button("苦手"):
-                    record_card_result(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak)
+            if st.button("苦手"):
+                record_card_result(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak)
         with result_cols[1]:
-            with st.container(key="card_known"):
-                if st.button("覚えた", type="primary"):
-                    record_card_result(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak)
+            if st.button("覚えた", type="primary"):
+                record_card_result(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak)
 
     if st.session_state.get("card_flipped", False):
         st.markdown(
