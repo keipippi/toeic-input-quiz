@@ -17,6 +17,7 @@ Streamlit製のTOEIC入力式単語練習アプリです。
 - words.csv の品質チェック
 - 発音ボタン
 - スマホ向けレイアウト
+- Supabaseへの外部保存
 
 ## 起動方法
 
@@ -143,6 +144,20 @@ history_<ユーザー名>.csv
 
 このログインは個人学習向けの軽いガードです。学校・社内などで本格的に公開する場合は、外部データベースや正式な認証サービスの利用を検討してください。
 
+## 外部保存
+
+`SUPABASE_URL` と `SUPABASE_KEY` を設定すると、ユーザー情報と履歴をSupabaseへ保存します。
+設定しない場合は、これまで通り `users.csv` と `history_<ユーザー名>.csv` に保存します。
+
+SupabaseのSQL Editorで `supabase_schema.sql` を実行してから、StreamlitのSecretsに以下を設定します。
+
+```toml
+SUPABASE_URL = "https://your-project.supabase.co"
+SUPABASE_KEY = "your-supabase-key"
+```
+
+個人利用ならservice role keyでも動かせますが、公開範囲が広い場合は権限設計を見直してください。
+
 ## ファイル構成
 
 ```text
@@ -153,6 +168,8 @@ history_<ユーザー名>.csv
 ├── quiz.py
 ├── requirements.txt
 ├── README.md
+├── storage.py
+├── supabase_schema.sql
 ├── words.py
 └── words.csv
 ```
@@ -162,3 +179,4 @@ history_<ユーザー名>.csv
 - `words.py`: 単語CSVの読み込み、追加、品質チェック
 - `history.py`: ユーザー別履歴の読み込み、保存、復習日計算
 - `quiz.py`: 解答判定、出題対象の絞り込み、苦手単語の優先度計算
+- `storage.py`: CSV保存とSupabase保存の切り替え

@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from storage import HISTORY_COLUMNS, append_remote_history, delete_remote_history, remote_history, supabase_configured
+
 
 APP_DIR = Path(__file__).parent
 REVIEW_STEPS = [1, 3, 7, 14, 30]
@@ -21,7 +23,13 @@ def history_path(user_name: str) -> Path:
 
 
 def load_history(user_name: str) -> pd.DataFrame:
-    cols = ["timestamp", "user", "word", "direction", "user_answer", "result", "mode", "reason", "next_review"]
+    cols = HISTORY_COLUMNS
+    if supabase_configured():
+        df = remote_history(user_name)
+        for c in cols:
+            if c not in df.columns:
+                df[c] = user_name if c == "user" else ""
+        return df[cols]
     path = history_path(user_name)
     if path.exists():
         df = pd.read_csv(path)
@@ -44,7 +52,7 @@ def next_review_date(word: str, result: str, history: pd.DataFrame) -> str:
 
 
 def save_history(user_name, word, direction, user_answer, result, mode, reason, history):
-    row = pd.DataFrame([{
+    row = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "user": user_name,
         "word": word,
@@ -54,5 +62,17 @@ def save_history(user_name, word, direction, user_answer, result, mode, reason, 
         "mode": mode,
         "reason": reason,
         "next_review": next_review_date(word, result, history),
-    }])
-    pd.concat([history, row], ignore_index=True).to_csv(history_path(user_name), index=False)
+    }
+    if supabase_configured():
+        append_remote_history(row)
+    else:
+        pd.concat([history, pd.DataFrame([row])], ignore_index=True).to_csv(history_path(user_name), index=False)
+
+
+def clear_history(user_name: str):
+    if supabase_configured():
+        delete_remote_history(user_name)
+        return
+    path = history_path(user_name)
+    if path.exists():
+        path.unlink()

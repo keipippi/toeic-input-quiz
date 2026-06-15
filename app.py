@@ -7,7 +7,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from auth import create_user, verify_user
-from history import history_path, load_history, save_history
+from history import clear_history, load_history, save_history
 from quiz import (
     choose_weighted_word,
     judge_answer,
@@ -29,6 +29,7 @@ from words import (
     quality_report,
     validate_new_word,
 )
+from storage import storage_label
 
 TEN_QUESTION_MODE = "10問連続"
 CARD_MODE = "カード"
@@ -66,7 +67,18 @@ MODE_LABEL_TO_OPTION = {option["label"]: option for option in MODE_OPTIONS}
 def speech_button(word: str):
     safe = html.escape(str(word), quote=True)
     components.html(f"""
-        <button onclick="speakWord()" style="font-size:16px;padding:8px 14px;border-radius:8px;border:1px solid #ddd;cursor:pointer;">🔊 発音</button>
+        <style>
+        html, body {{ margin: 0; padding: 0; background: transparent; }}
+        button {{
+            font-size: 16px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            cursor: pointer;
+        }}
+        </style>
+        <button onclick="speakWord()">発音</button>
         <script>
         function speakWord() {{
             const u = new SpeechSynthesisUtterance("{safe}");
@@ -82,13 +94,19 @@ def apply_mobile_styles():
     st.markdown(
         """
         <style>
+        .stApp {
+            background: #f8fafc;
+        }
+        header[data-testid="stHeader"] {
+            background: transparent;
+        }
         .block-container {
             max-width: 760px;
-            padding-top: 1rem;
+            padding-top: 0.75rem;
             padding-bottom: 2rem;
         }
         div[data-testid="stMetric"] {
-            background: #f8fafc;
+            background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 0.75rem;
@@ -98,6 +116,7 @@ def apply_mobile_styles():
         div[data-testid="stFormSubmitButton"] > button {
             min-height: 3rem;
             width: 100%;
+            border-radius: 8px;
         }
         .stTextInput input {
             font-size: 16px;
@@ -109,8 +128,9 @@ def apply_mobile_styles():
         .quiz-card {
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 1rem;
+            padding: 1.1rem;
             background: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
         }
         .quiz-word {
             font-size: clamp(2rem, 8vw, 3.4rem);
@@ -142,6 +162,11 @@ def apply_mobile_styles():
             color: #64748b;
             font-size: 0.9rem;
             margin: 0.5rem 0;
+        }
+        .app-kicker {
+            color: #475569;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
         }
         @media (max-width: 640px) {
             .block-container {
@@ -415,10 +440,13 @@ def render_quality_panel():
     st.dataframe(filtered, use_container_width=True, hide_index=True)
 
 
-st.set_page_config(page_title="TOEIC入力式単語練習", page_icon="📘", layout="centered")
+st.set_page_config(page_title="TOEIC入力式単語練習", layout="centered")
 apply_mobile_styles()
-st.title("📘 TOEIC入力式単語練習")
-st.caption("入力式・カード・ユーザー別成績・英日/日英・忘却曲線復習・10問連続モード")
+st.title("TOEIC入力式単語練習")
+st.markdown(
+    '<div class="app-kicker">入力式・カード・ユーザー別成績・英日/日英・忘却曲線復習・10問連続モード</div>',
+    unsafe_allow_html=True,
+)
 
 user_name = render_login()
 if not user_name:
@@ -429,6 +457,7 @@ base_df = load_base_words()
 with st.sidebar:
     st.header("ユーザー")
     st.caption(f"現在のユーザー: {user_name}")
+    st.caption(f"保存先: {storage_label()}")
     if st.button("ログアウト"):
         for key in [
             "authenticated_user",
@@ -702,9 +731,7 @@ tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦�
 with tab_score:
     render_score_dashboard(history, df, user_name)
     if st.button("このユーザーの履歴リセット"):
-        path = history_path(user_name)
-        if path.exists():
-            path.unlink()
+        clear_history(user_name)
         st.session_state.last = None
         st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
         st.rerun()

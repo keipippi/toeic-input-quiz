@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from history import safe_user_id
+from storage import insert_remote_user, remote_user, remote_users, supabase_configured
 
 
 APP_DIR = Path(__file__).parent
@@ -16,6 +17,8 @@ USER_COLUMNS = ["user_id", "display_name", "salt", "pin_hash", "created_at"]
 
 
 def load_users() -> pd.DataFrame:
+    if supabase_configured():
+        return remote_users()
     if USERS_PATH.exists():
         users = pd.read_csv(USERS_PATH)
         for col in USER_COLUMNS:
@@ -54,21 +57,27 @@ def create_user(user_name: str, pin: str) -> tuple[bool, str, str]:
     if user_id in set(users["user_id"].astype(str)):
         return False, user_id, "このユーザー名はすでに登録されています。"
     salt = new_salt()
-    row = pd.DataFrame([{
+    row = {
         "user_id": user_id,
         "display_name": str(user_name).strip(),
         "salt": salt,
         "pin_hash": hash_pin(pin, salt),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    }])
-    save_users(pd.concat([users, row], ignore_index=True))
+    }
+    if supabase_configured():
+        insert_remote_user(row)
+    else:
+        save_users(pd.concat([users, pd.DataFrame([row])], ignore_index=True))
     return True, user_id, "登録しました。"
 
 
 def verify_user(user_name: str, pin: str) -> tuple[bool, str, str]:
     user_id = safe_user_id(user_name)
-    users = load_users()
-    matched = users[users["user_id"].astype(str).eq(user_id)]
+    if supabase_configured():
+        matched = remote_user(user_id)
+    else:
+        users = load_users()
+        matched = users[users["user_id"].astype(str).eq(user_id)]
     if matched.empty:
         return False, user_id, "ユーザーが見つかりません。先に新規登録してください。"
     user = matched.iloc[0]

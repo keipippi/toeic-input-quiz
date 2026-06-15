@@ -3,3 +3,5 @@ history_*.csv
 *.tmp
 __pycache__/
 .streamlit/
+.env
+.env.*
