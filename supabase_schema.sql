@@ -21,3 +21,8 @@ create table if not exists toeic_history (
 
 create index if not exists toeic_history_user_idx on toeic_history ("user");
 create index if not exists toeic_history_word_idx on toeic_history (word);
+
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.toeic_users to service_role;
+grant select, insert, update, delete on public.toeic_history to service_role;
+grant usage, select on sequence public.toeic_history_id_seq to service_role;
