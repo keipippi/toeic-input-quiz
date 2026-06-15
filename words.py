@@ -77,6 +77,10 @@ def clean_form_value(value: str) -> str:
     return unicodedata.normalize("NFKC", str(value)).strip()
 
 
+def is_blank(value) -> bool:
+    return pd.isna(value) or str(value).strip() == ""
+
+
 def validate_new_word(row: dict, existing_df: pd.DataFrame) -> list[str]:
     errors = []
     required = {
@@ -108,32 +112,64 @@ def append_word_to_csv(row: dict):
 
 def quality_report(words_df: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     report_df = words_df.copy()
+    for col in REQUIRED_COLUMNS:
+        if col not in report_df.columns:
+            report_df[col] = ""
     report_df["word_key"] = report_df["word"].astype(str).map(normalize_word_key)
     issues = []
-    optional_columns = {"ipa", "note"}
+    required_labels = {
+        "word": "英単語",
+        "meaning": "意味",
+        "accepted_answers": "許容表現",
+        "example": "英語例文",
+        "level": "レベル",
+        "pos": "品詞",
+        "example_ja": "例文の日本語訳",
+    }
     for index, row in report_df.iterrows():
         word = str(row["word"])
-        for col in REQUIRED_COLUMNS:
-            if col in optional_columns:
-                continue
+        row_number = index + 2
+        for col, label_text in required_labels.items():
             value = row.get(col, "")
-            if pd.isna(value) or str(value).strip() == "":
-                issues.append({"word": word, "issue": f"{col} が空欄です", "row": index + 2})
+            if is_blank(value):
+                issues.append({"row": row_number, "word": word, "type": "空欄", "issue": f"{label_text}が空欄です"})
         if str(row.get("level", "")) not in LEVEL_ORDER:
-            issues.append({"word": word, "issue": "level が 600 / 700 / 800 以外です", "row": index + 2})
-        if len(split_answers(row.get("accepted_answers", ""))) == 0:
-            issues.append({"word": word, "issue": "accepted_answers が分割できません", "row": index + 2})
+            issues.append({"row": row_number, "word": word, "type": "レベル", "issue": "レベルが 600 / 700 / 800 以外です"})
+
+        meaning = str(row.get("meaning", "")).strip()
+        meaning_parts = split_answers(meaning) or ([meaning] if meaning else [])
+        meaning_keys = {normalize_word_key(part) for part in meaning_parts}
+        if meaning and len(meaning) <= 1:
+            issues.append({"row": row_number, "word": word, "type": "意味", "issue": "意味が短すぎる可能性があります"})
+        if len(meaning) >= 40:
+            issues.append({"row": row_number, "word": word, "type": "意味", "issue": "意味が長すぎる可能性があります"})
+
+        answers = split_answers(row.get("accepted_answers", ""))
+        if not answers:
+            issues.append({"row": row_number, "word": word, "type": "許容表現", "issue": "許容表現が空欄または分割できません"})
+        answer_keys = [normalize_word_key(answer) for answer in answers]
+        if len(answer_keys) != len(set(answer_keys)):
+            issues.append({"row": row_number, "word": word, "type": "許容表現", "issue": "許容表現の中に重複があります"})
+        duplicated_with_meaning = [answer for answer in answers if normalize_word_key(answer) in meaning_keys]
+        if duplicated_with_meaning:
+            joined = "／".join(duplicated_with_meaning)
+            issues.append({"row": row_number, "word": word, "type": "許容表現", "issue": f"意味と許容表現が重複しています: {joined}"})
+
+        if is_blank(row.get("example", "")) or is_blank(row.get("example_ja", "")):
+            issues.append({"row": row_number, "word": word, "type": "例文", "issue": "英語例文または日本語訳が空欄です"})
 
     duplicated = report_df[report_df["word_key"].duplicated(keep=False)].sort_values("word_key")
     for _, row in duplicated.iterrows():
-        issues.append({"word": row["word"], "issue": "英単語が重複しています", "row": int(row.name) + 2})
+        issues.append({"row": int(row.name) + 2, "word": row["word"], "type": "重複", "issue": "英単語が重複しています"})
 
-    issue_df = pd.DataFrame(issues, columns=["row", "word", "issue"])
+    issue_df = pd.DataFrame(issues, columns=["row", "word", "type", "issue"])
+    level_counts = report_df["level"].astype(str).value_counts().to_dict()
     summary = {
         "total": len(words_df),
         "duplicates": int(report_df["word_key"].duplicated().sum()),
         "issues": len(issue_df),
-        "missing_ipa": int(words_df["ipa"].isna().sum() + words_df["ipa"].astype(str).str.strip().eq("").sum()),
+        "missing_ipa": int(report_df["ipa"].isna().sum() + report_df["ipa"].astype(str).str.strip().eq("").sum()),
+        "level_counts": {level: int(level_counts.get(level, 0)) for level in LEVEL_ORDER},
     }
     return summary, issue_df
 

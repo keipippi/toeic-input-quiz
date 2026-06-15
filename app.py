@@ -20,6 +20,7 @@ from words import (
     LEVEL_ORDER,
     LEVEL_PRESETS,
     REQUIRED_COLUMNS,
+    WORDS_PATH,
     append_word_to_csv,
     clean_form_value,
     load_base_words,
@@ -327,6 +328,32 @@ def render_score_dashboard(history, words_df, user_name):
     )
 
 
+def render_quality_panel():
+    st.subheader("品質チェック")
+    raw_words = pd.read_csv(WORDS_PATH)
+    summary, issue_df = quality_report(raw_words)
+    q1, q2, q3 = st.columns(3)
+    q1.metric("登録語数", summary["total"])
+    q2.metric("重複", summary["duplicates"])
+    q3.metric("要確認", summary["issues"])
+    st.caption(f"発音記号が未入力の単語: {summary['missing_ipa']}語")
+
+    level_df = pd.DataFrame(
+        [{"レベル": level, "語数": count} for level, count in summary["level_counts"].items()]
+    )
+    st.dataframe(level_df, use_container_width=True, hide_index=True)
+
+    if issue_df.empty:
+        st.success("大きな問題は見つかりませんでした。")
+        return
+
+    issue_types = ["すべて"] + sorted(issue_df["type"].dropna().unique().tolist())
+    selected_type = st.selectbox("問題タイプ", issue_types)
+    filtered = issue_df if selected_type == "すべて" else issue_df[issue_df["type"].eq(selected_type)]
+    st.caption(f"{len(filtered)}件を表示中")
+    st.dataframe(filtered, use_container_width=True, hide_index=True)
+
+
 st.set_page_config(page_title="TOEIC入力式単語練習", page_icon="📘", layout="centered")
 apply_mobile_styles()
 st.title("📘 TOEIC入力式単語練習")
@@ -508,17 +535,7 @@ if mode == CARD_MODE:
         st.write("カードモード中も、通常画面と同じ単語追加フォームを使えます。")
 
     with tab_quality:
-        st.subheader("品質チェック")
-        summary, issue_df = quality_report(base_df)
-        q1, q2, q3 = st.columns(3)
-        q1.metric("登録語数", summary["total"])
-        q2.metric("重複", summary["duplicates"])
-        q3.metric("要確認", summary["issues"])
-        st.caption(f"発音記号が未入力の単語: {summary['missing_ipa']}語")
-        if issue_df.empty:
-            st.success("大きな問題は見つかりませんでした。")
-        else:
-            st.dataframe(issue_df, use_container_width=True, hide_index=True)
+        render_quality_panel()
 
     with tab_words:
         st.subheader("単語リスト")
@@ -673,17 +690,7 @@ with tab_add:
             st.rerun()
 
 with tab_quality:
-    st.subheader("品質チェック")
-    summary, issue_df = quality_report(base_df)
-    q1, q2, q3 = st.columns(3)
-    q1.metric("登録語数", summary["total"])
-    q2.metric("重複", summary["duplicates"])
-    q3.metric("要確認", summary["issues"])
-    st.caption(f"発音記号が未入力の単語: {summary['missing_ipa']}語")
-    if issue_df.empty:
-        st.success("大きな問題は見つかりませんでした。")
-    else:
-        st.dataframe(issue_df, use_container_width=True, hide_index=True)
+    render_quality_panel()
 
 with tab_words:
     st.subheader("単語リスト")

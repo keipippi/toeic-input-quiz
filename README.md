@@ -123,6 +123,10 @@ word,meaning,accepted_answers,example,note,level,pos,example_ja,ipa
 - 重複数
 - 要確認件数
 - 発音記号未入力数
+- レベル別の語数
+- 問題タイプ別の絞り込み
+
+問題タイプには、空欄、許容表現、意味、例文、レベル、重複などがあります。
 
 ## 履歴データ
 
