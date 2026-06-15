@@ -139,7 +139,15 @@ history_<ユーザー名>.csv
 ```text
 .
 ├── app.py
+├── history.py
+├── quiz.py
 ├── requirements.txt
 ├── README.md
+├── words.py
 └── words.csv
 ```
+
+- `app.py`: Streamlitの画面
+- `words.py`: 単語CSVの読み込み、追加、品質チェック
+- `history.py`: ユーザー別履歴の読み込み、保存、復習日計算
+- `quiz.py`: 解答判定、出題対象の絞り込み、苦手単語の優先度計算
