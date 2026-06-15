@@ -164,30 +164,8 @@ def apply_mobile_styles():
         .card-hint {
             color: #64748b;
             font-size: 0.9rem;
-            margin: 0.65rem auto 0.25rem;
-            max-width: 360px;
+            margin: 0.7rem 0 0.25rem;
             text-align: center;
-        }
-        .st-key-card_primary_actions div[data-testid="stHorizontalBlock"],
-        .st-key-card_secondary_actions div[data-testid="stHorizontalBlock"] {
-            display: grid !important;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: 0.5rem;
-            width: 100%;
-            max-width: 360px;
-            margin: 0 auto;
-            align-items: stretch;
-        }
-        .st-key-card_primary_actions div[data-testid="column"],
-        .st-key-card_secondary_actions div[data-testid="column"] {
-            width: auto !important;
-            min-width: 0 !important;
-            max-width: none !important;
-        }
-        .st-key-card_primary_actions .stButton,
-        .st-key-card_secondary_actions .stButton {
-            width: 100%;
-            min-width: 0;
         }
         .st-key-card_primary_actions .stButton > button,
         .st-key-card_secondary_actions .stButton > button {
@@ -196,25 +174,15 @@ def apply_mobile_styles():
             justify-content: center;
             min-width: 0 !important;
             white-space: nowrap;
-            padding-left: 0.4rem;
-            padding-right: 0.4rem;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
         }
         .st-key-card_primary_actions .stButton > button {
-            min-height: 3.4rem;
+            min-height: 3.25rem;
             font-weight: 700;
         }
         .st-key-card_secondary_actions .stButton > button {
             min-height: 2.8rem;
-        }
-        .st-key-card_primary_actions div[data-testid="column"]:first-child button {
-            border-color: #fecaca;
-            background: #fff7f7;
-            color: #991b1b;
-        }
-        .st-key-card_primary_actions div[data-testid="column"]:last-child button {
-            border-color: #bbf7d0;
-            background: #f0fdf4;
-            color: #166534;
         }
         .app-kicker {
             color: #475569;
@@ -236,11 +204,6 @@ def apply_mobile_styles():
             }
             h2, h3 {
                 font-size: 1.25rem !important;
-            }
-            .st-key-card_primary_actions div[data-testid="column"],
-            .st-key-card_secondary_actions div[data-testid="column"] {
-                width: auto !important;
-                min-width: 0 !important;
             }
         }
         </style>
@@ -668,21 +631,21 @@ if mode == CARD_MODE:
     with st.container(key="card_secondary_actions"):
         flip_cols = st.columns(2, gap="small")
         with flip_cols[0]:
-            if st.button("めくる" if not st.session_state.get("card_flipped", False) else "表に戻す"):
+            if st.button("めくる" if not st.session_state.get("card_flipped", False) else "表に戻す", use_container_width=True):
                 st.session_state.card_flipped = not st.session_state.get("card_flipped", False)
                 st.rerun()
         with flip_cols[1]:
-            if st.button("次のカード"):
+            if st.button("次のカード", use_container_width=True):
                 go_next(qdf, history, mode, direction, prefer_weak)
 
     st.markdown('<div class="card-hint">左: 苦手 / 右: 覚えた</div>', unsafe_allow_html=True)
     with st.container(key="card_primary_actions"):
         result_cols = st.columns(2, gap="small")
         with result_cols[0]:
-            if st.button("苦手"):
+            if st.button("苦手", use_container_width=True):
                 record_card_result(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak)
         with result_cols[1]:
-            if st.button("覚えた", type="primary"):
+            if st.button("覚えた", use_container_width=True):
                 record_card_result(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak)
 
     if st.session_state.get("card_flipped", False):
