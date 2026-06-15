@@ -119,10 +119,21 @@ def apply_mobile_styles():
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 0.75rem;
-            min-height: 6.5rem;
+            height: 6.6rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
+        }
+        div[data-testid="stMetric"] label {
+            min-height: 1.3rem;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        div[data-testid="stMetricValue"] {
+            min-height: 2.2rem;
+            display: flex;
+            align-items: center;
         }
         .stButton > button,
         .stDownloadButton > button,
@@ -217,7 +228,7 @@ def apply_mobile_styles():
                 font-size: 1.25rem !important;
             }
             div[data-testid="stMetric"] {
-                min-height: 5.75rem;
+                height: 5.9rem;
             }
         }
         </style>
@@ -462,20 +473,22 @@ def render_score_dashboard(history, words_df, user_name):
         ).reset_index()
         level_stats["正解率"] = (level_stats["正解数"] / level_stats["解答数"] * 100).round(1)
         level_stats["level"] = level_stats["level"].fillna("追加CSV")
-        st.dataframe(level_stats.sort_values("level"), use_container_width=True, hide_index=True)
+        st.table(level_stats.sort_values("level").rename(columns={"level": "レベル"}).reset_index(drop=True))
 
     weak = h[h["result"].ne("correct")]
     if len(weak):
         st.write("よく間違える単語")
         weak_top = weak.groupby("word").size().reset_index(name="ミス回数").sort_values("ミス回数", ascending=False).head(5)
-        st.dataframe(weak_top, use_container_width=True, hide_index=True)
+        st.table(weak_top.rename(columns={"word": "単語"}).reset_index(drop=True))
 
     st.write("最近の履歴")
-    st.dataframe(
-        h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]],
-        use_container_width=True,
-        hide_index=True,
-    )
+    recent = h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]]
+    st.table(recent.rename(columns={
+        "word": "単語",
+        "result": "結果",
+        "direction": "方向",
+        "next_review": "次回復習",
+    }).reset_index(drop=True))
 
 
 def render_quality_panel():
@@ -491,7 +504,7 @@ def render_quality_panel():
     level_df = pd.DataFrame(
         [{"レベル": level, "語数": count} for level, count in summary["level_counts"].items()]
     )
-    st.dataframe(level_df, use_container_width=True, hide_index=True)
+    st.table(level_df)
 
     if issue_df.empty:
         st.success("大きな問題は見つかりませんでした。")
