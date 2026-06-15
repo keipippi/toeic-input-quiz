@@ -95,6 +95,10 @@ def apply_mobile_styles():
     st.markdown(
         """
         <style>
+        html, body, .stApp {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
         .stApp {
             background: #f8fafc;
         }
@@ -103,6 +107,7 @@ def apply_mobile_styles():
         }
         .block-container {
             max-width: 760px;
+            width: 100%;
             padding-top: 0.75rem;
             padding-bottom: 2rem;
         }
@@ -132,29 +137,31 @@ def apply_mobile_styles():
             padding: 1.1rem;
             background: #ffffff;
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
         }
         .quiz-word {
             font-size: clamp(2rem, 8vw, 3.4rem);
             line-height: 1.1;
             font-weight: 700;
             overflow-wrap: anywhere;
-            margin: 0.25rem 0 0.5rem;
+            margin: 0.35rem auto 0.4rem;
         }
         .quiz-meta {
             color: #64748b;
             font-size: 0.9rem;
+            text-align: center;
         }
         .card-back {
-            border-top: 1px solid #e5e7eb;
-            margin-top: 1rem;
-            padding-top: 1rem;
+            margin-top: 0.9rem;
         }
         .card-answer {
             font-size: clamp(1.4rem, 6vw, 2.2rem);
             line-height: 1.25;
             font-weight: 700;
             overflow-wrap: anywhere;
-            margin: 0.25rem 0 0.75rem;
+            margin: 0.35rem auto 0.75rem;
         }
         .card-hint {
             display: flex;
@@ -162,24 +169,46 @@ def apply_mobile_styles():
             gap: 0.75rem;
             color: #64748b;
             font-size: 0.9rem;
-            margin: 0.5rem 0;
+            margin: 0.55rem 0 0.25rem;
+            padding: 0 0.15rem;
         }
         .st-key-card_primary_actions div[data-testid="stHorizontalBlock"],
         .st-key-card_secondary_actions div[data-testid="stHorizontalBlock"] {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 0.5rem;
+            width: 100%;
+            align-items: stretch;
         }
         .st-key-card_primary_actions div[data-testid="column"],
         .st-key-card_secondary_actions div[data-testid="column"] {
-            flex: 1 1 0 !important;
+            width: auto !important;
             min-width: 0 !important;
-            width: 50% !important;
+            max-width: none !important;
+        }
+        .st-key-card_primary_actions .stButton,
+        .st-key-card_secondary_actions .stButton,
+        .st-key-card_weak,
+        .st-key-card_known {
+            width: 100%;
+            min-width: 0;
+        }
+        .st-key-card_primary_actions .stButton > button,
+        .st-key-card_secondary_actions .stButton > button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0 !important;
+            white-space: nowrap;
+            padding-left: 0.4rem;
+            padding-right: 0.4rem;
         }
         .st-key-card_primary_actions .stButton > button {
             min-height: 3.4rem;
             font-weight: 700;
+        }
+        .st-key-card_secondary_actions .stButton > button {
+            min-height: 2.8rem;
         }
         .st-key-card_weak button {
             border-color: #fecaca;
@@ -196,10 +225,15 @@ def apply_mobile_styles():
             font-size: 0.95rem;
             margin-bottom: 0.75rem;
         }
+        .stTabs [role="tablist"] {
+            overflow-x: auto;
+            max-width: 100%;
+        }
         @media (max-width: 640px) {
             .block-container {
                 padding-left: 0.85rem;
                 padding-right: 0.85rem;
+                max-width: 100vw;
             }
             h1 {
                 font-size: 1.7rem !important;
@@ -209,8 +243,8 @@ def apply_mobile_styles():
             }
             .st-key-card_primary_actions div[data-testid="column"],
             .st-key-card_secondary_actions div[data-testid="column"] {
-                width: 50% !important;
-                flex: 1 1 0 !important;
+                width: auto !important;
+                min-width: 0 !important;
             }
         }
         </style>
@@ -624,7 +658,7 @@ if mode == CARD_MODE:
     st.markdown(
         f"""
         <div class="quiz-card">
-          <div class="quiz-meta">Level {row['level']} / {row['pos']} / {actual_direction}</div>
+          <div class="quiz-meta">Level {row['level']} ・ {row['pos']} ・ {actual_direction}</div>
           <div class="quiz-word">{html.escape(str(card_front))}</div>
         </div>
         """,
@@ -645,7 +679,7 @@ if mode == CARD_MODE:
             if st.button("次のカード"):
                 go_next(qdf, history, mode, direction, prefer_weak)
 
-    st.markdown('<div class="card-hint"><span>← 苦手</span><span>覚えた →</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-hint"><span>左: 苦手</span><span>右: 覚えた</span></div>', unsafe_allow_html=True)
     with st.container(key="card_primary_actions"):
         result_cols = st.columns(2, gap="small")
         with result_cols[0]:
