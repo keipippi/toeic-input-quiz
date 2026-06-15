@@ -56,8 +56,10 @@ def make_quiz_df(df, history, mode, levels):
         q = q[q["word"].isin(words)]
     elif mode == "復習期限の単語":
         h = history.copy()
+        h["timestamp_dt"] = pd.to_datetime(h["timestamp"], errors="coerce")
         h["next_review_dt"] = pd.to_datetime(h["next_review"], errors="coerce").dt.date
-        words = h.loc[h["next_review_dt"].le(today), "word"].unique().tolist()
+        latest = h.sort_values("timestamp_dt").drop_duplicates("word", keep="last")
+        words = latest.loc[latest["next_review_dt"].le(today), "word"].unique().tolist()
         q = q[q["word"].isin(words)]
     return q
 

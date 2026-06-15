@@ -211,6 +211,34 @@ def learning_streak(history):
     return streak
 
 
+def due_review_table(history, words_df):
+    h = prepare_history_for_stats(history)
+    latest = h.sort_values("timestamp_dt").drop_duplicates("word", keep="last")
+    today = datetime.now().date()
+    due = latest[latest["next_review_dt"].le(today)].copy()
+    if due.empty:
+        return due
+
+    attempts = h.groupby("word").agg(
+        解答数=("result", "count"),
+        ミス回数=("result", lambda s: int((s != "correct").sum())),
+    ).reset_index()
+    due = due.merge(words_df[["word", "meaning", "level"]], on="word", how="left")
+    due = due.merge(attempts, on="word", how="left")
+    due["期限超過"] = due["next_review_dt"].apply(lambda d: max((today - d).days, 0) if pd.notna(d) else 0)
+    due = due.rename(columns={
+        "word": "単語",
+        "meaning": "意味",
+        "level": "レベル",
+        "result": "前回結果",
+        "next_review": "復習予定日",
+    })
+    return due[["単語", "意味", "レベル", "前回結果", "復習予定日", "期限超過", "解答数", "ミス回数"]].sort_values(
+        ["期限超過", "ミス回数", "単語"],
+        ascending=[False, False, True],
+    )
+
+
 def render_score_dashboard(history, words_df, user_name):
     st.subheader("成績")
     st.caption(f"ユーザー: {user_name}")
@@ -223,7 +251,7 @@ def render_score_dashboard(history, words_df, user_name):
     week_start = today - timedelta(days=6)
     today_history = h[h["date"].eq(today)]
     week_history = h[h["date"].between(week_start, today, inclusive="both")]
-    due_words = h.loc[h["next_review_dt"].le(today), "word"].dropna().unique()
+    due_table = due_review_table(history, words_df)
 
     total_rate = h["result"].eq("correct").mean() * 100
     today_rate = today_history["result"].eq("correct").mean() * 100 if len(today_history) else 0
@@ -236,10 +264,16 @@ def render_score_dashboard(history, words_df, user_name):
     bottom_cols = st.columns(3)
     bottom_cols[0].metric("累計解答", f"{len(h)}問")
     bottom_cols[1].metric("累計正解率", f"{total_rate:.1f}%")
-    bottom_cols[2].metric("復習待ち", f"{len(due_words)}語")
+    bottom_cols[2].metric("復習待ち", f"{len(due_table)}語")
 
     st.write("直近7日")
     st.metric("7日間の学習数", f"{len(week_history)}問")
+
+    with st.expander("復習待ち単語", expanded=len(due_table) > 0):
+        if due_table.empty:
+            st.write("復習待ちの単語はありません。")
+        else:
+            st.dataframe(due_table, use_container_width=True, hide_index=True)
 
     with st.expander("レベル別の正解率", expanded=True):
         level_history = h.merge(words_df[["word", "level"]], on="word", how="left")
