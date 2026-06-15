@@ -1,5 +1,6 @@
 import html
 import random
+from datetime import datetime, timedelta
 
 import pandas as pd
 import streamlit as st
@@ -188,6 +189,82 @@ def go_next(qdf, history, mode, direction, prefer_weak):
     st.rerun()
 
 
+def prepare_history_for_stats(history):
+    h = history.copy()
+    h["timestamp_dt"] = pd.to_datetime(h["timestamp"], errors="coerce")
+    h["date"] = h["timestamp_dt"].dt.date
+    h["next_review_dt"] = pd.to_datetime(h["next_review"], errors="coerce").dt.date
+    return h
+
+
+def learning_streak(history):
+    dates = sorted(set(history["date"].dropna()), reverse=True)
+    if not dates:
+        return 0
+    today = datetime.now().date()
+    current = today if dates[0] == today else today - timedelta(days=1)
+    streak = 0
+    date_set = set(dates)
+    while current in date_set:
+        streak += 1
+        current -= timedelta(days=1)
+    return streak
+
+
+def render_score_dashboard(history, words_df, user_name):
+    st.subheader("成績")
+    st.caption(f"ユーザー: {user_name}")
+    if len(history) == 0:
+        st.write("まだ履歴はありません。")
+        return
+
+    h = prepare_history_for_stats(history)
+    today = datetime.now().date()
+    week_start = today - timedelta(days=6)
+    today_history = h[h["date"].eq(today)]
+    week_history = h[h["date"].between(week_start, today, inclusive="both")]
+    due_words = h.loc[h["next_review_dt"].le(today), "word"].dropna().unique()
+
+    total_rate = h["result"].eq("correct").mean() * 100
+    today_rate = today_history["result"].eq("correct").mean() * 100 if len(today_history) else 0
+
+    top_cols = st.columns(3)
+    top_cols[0].metric("今日の学習", f"{len(today_history)}問")
+    top_cols[1].metric("今日の正解率", f"{today_rate:.1f}%")
+    top_cols[2].metric("連続学習", f"{learning_streak(h)}日")
+
+    bottom_cols = st.columns(3)
+    bottom_cols[0].metric("累計解答", f"{len(h)}問")
+    bottom_cols[1].metric("累計正解率", f"{total_rate:.1f}%")
+    bottom_cols[2].metric("復習待ち", f"{len(due_words)}語")
+
+    st.write("直近7日")
+    st.metric("7日間の学習数", f"{len(week_history)}問")
+
+    with st.expander("レベル別の正解率", expanded=True):
+        level_history = h.merge(words_df[["word", "level"]], on="word", how="left")
+        level_stats = level_history.groupby("level", dropna=False).agg(
+            解答数=("result", "count"),
+            正解数=("result", lambda s: int((s == "correct").sum())),
+        ).reset_index()
+        level_stats["正解率"] = (level_stats["正解数"] / level_stats["解答数"] * 100).round(1)
+        level_stats["level"] = level_stats["level"].fillna("追加CSV")
+        st.dataframe(level_stats.sort_values("level"), use_container_width=True, hide_index=True)
+
+    weak = h[h["result"].ne("correct")]
+    if len(weak):
+        st.write("よく間違える単語")
+        weak_top = weak.groupby("word").size().reset_index(name="ミス回数").sort_values("ミス回数", ascending=False).head(5)
+        st.dataframe(weak_top, use_container_width=True, hide_index=True)
+
+    st.write("最近の履歴")
+    st.dataframe(
+        h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+
 st.set_page_config(page_title="TOEIC入力式単語練習", page_icon="📘", layout="centered")
 apply_mobile_styles()
 st.title("📘 TOEIC入力式単語練習")
@@ -335,16 +412,7 @@ if mode == CARD_MODE:
     tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
 
     with tab_score:
-        st.subheader("成績")
-        st.caption(f"ユーザー: {user_name}")
-        if len(history) == 0:
-            st.write("まだ履歴はありません。")
-        else:
-            score_cols = st.columns(2)
-            score_cols[0].metric("解答数", len(history))
-            score_cols[1].metric("正解率", f"{(history['result'].eq('correct').mean()*100):.1f}%")
-            st.write("次回復習予定")
-            st.dataframe(history.tail(5)[["word", "result", "next_review"]], use_container_width=True, hide_index=True)
+        render_score_dashboard(history, df, user_name)
 
     with tab_weak:
         st.subheader("苦手ランキング")
@@ -468,16 +536,7 @@ with action_cols[1]:
 tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
 
 with tab_score:
-    st.subheader("成績")
-    st.caption(f"ユーザー: {user_name}")
-    if len(history) == 0:
-        st.write("まだ履歴はありません。")
-    else:
-        score_cols = st.columns(2)
-        score_cols[0].metric("解答数", len(history))
-        score_cols[1].metric("正解率", f"{(history['result'].eq('correct').mean()*100):.1f}%")
-        st.write("次回復習予定")
-        st.dataframe(history.tail(5)[["word", "result", "next_review"]], use_container_width=True, hide_index=True)
+    render_score_dashboard(history, df, user_name)
     if st.button("このユーザーの履歴リセット"):
         path = history_path(user_name)
         if path.exists():
