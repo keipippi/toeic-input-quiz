@@ -6,7 +6,8 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-from history import history_path, load_history, safe_user_id, save_history
+from auth import create_user, verify_user
+from history import history_path, load_history, save_history
 from quiz import (
     choose_weighted_word,
     judge_answer,
@@ -134,6 +135,14 @@ def apply_mobile_styles():
             overflow-wrap: anywhere;
             margin: 0.25rem 0 0.75rem;
         }
+        .card-hint {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
         @media (max-width: 640px) {
             .block-container {
                 padding-left: 0.85rem;
@@ -150,6 +159,49 @@ def apply_mobile_styles():
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_login():
+    if st.session_state.get("authenticated_user"):
+        return st.session_state.authenticated_user
+
+    st.subheader("ログイン")
+    login_tab, signup_tab = st.tabs(["ログイン", "新規登録"])
+
+    with login_tab:
+        with st.form("login_form"):
+            login_name = st.text_input("ユーザー名", placeholder="例: Keishi")
+            login_pin = st.text_input("PIN", type="password", placeholder="4文字以上")
+            submitted = st.form_submit_button("ログイン")
+        if submitted:
+            ok, user_id, message = verify_user(login_name, login_pin)
+            if ok:
+                st.session_state.authenticated_user = user_id
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
+
+    with signup_tab:
+        with st.form("signup_form"):
+            signup_name = st.text_input("ユーザー名", placeholder="例: Keishi")
+            signup_pin = st.text_input("PIN", type="password", placeholder="4文字以上")
+            signup_pin_confirm = st.text_input("PIN確認", type="password", placeholder="もう一度入力")
+            submitted = st.form_submit_button("登録して始める")
+        if submitted:
+            if signup_pin != signup_pin_confirm:
+                st.error("PINが一致しません。")
+            else:
+                ok, user_id, message = create_user(signup_name, signup_pin)
+                if ok:
+                    st.session_state.authenticated_user = user_id
+                    st.success(message)
+                    st.rerun()
+                else:
+                    st.error(message)
+
+    st.info("ユーザー名とPINで成績を分けます。PINはそのまま保存せず、確認用の値だけを保存します。")
+    return None
 
 
 def choose_direction(direction):
@@ -216,6 +268,15 @@ def go_next(qdf, history, mode, direction, prefer_weak):
     else:
         set_question(choose_weighted_word(qdf, history, prefer_weak), direction)
     st.rerun()
+
+
+def record_card_result(user_name, row, actual_direction, result, history, qdf, mode, direction, prefer_weak):
+    if result == "correct":
+        save_history(user_name, row["word"], f"カード:{actual_direction}", "覚えた", "correct", "カード", "カードで覚えたとして記録しました。", history)
+    else:
+        save_history(user_name, row["word"], f"カード:{actual_direction}", "苦手", "wrong", "カード", "カードで苦手として記録しました。", history)
+    next_history = load_history(user_name)
+    go_next(qdf, next_history, mode, direction, prefer_weak)
 
 
 def prepare_history_for_stats(history):
@@ -359,14 +420,29 @@ apply_mobile_styles()
 st.title("📘 TOEIC入力式単語練習")
 st.caption("入力式・カード・ユーザー別成績・英日/日英・忘却曲線復習・10問連続モード")
 
+user_name = render_login()
+if not user_name:
+    st.stop()
+
 base_df = load_base_words()
 
 with st.sidebar:
     st.header("ユーザー")
-    user_name = st.text_input("ユーザー名", value=st.session_state.get("user_name", "Keishi"), placeholder="例：Keishi / Taro")
-    user_name = safe_user_id(user_name)
-    st.session_state.user_name = user_name
     st.caption(f"現在のユーザー: {user_name}")
+    if st.button("ログアウト"):
+        for key in [
+            "authenticated_user",
+            "quiz_signature",
+            "quiz_word",
+            "quiz_direction",
+            "card_flipped",
+            "last",
+            "ten_words",
+            "ten_results",
+        ]:
+            st.session_state.pop(key, None)
+        st.query_params.clear()
+        st.rerun()
 
     st.header("設定")
     uploaded_files = st.file_uploader("単語CSVを追加（複数可）", type=["csv"], accept_multiple_files=True)
@@ -489,6 +565,15 @@ if mode == CARD_MODE:
             st.write(row["example_ja"])
             st.write(row["note"])
 
+    st.markdown('<div class="card-hint"><span>苦手</span><span>覚えた</span></div>', unsafe_allow_html=True)
+    result_cols = st.columns([1, 1])
+    with result_cols[0]:
+        if st.button("← 苦手", type="secondary"):
+            record_card_result(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak)
+    with result_cols[1]:
+        if st.button("覚えた →", type="primary"):
+            record_card_result(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak)
+
     flip_cols = st.columns(2)
     with flip_cols[0]:
         if st.button("めくる" if not st.session_state.get("card_flipped", False) else "表に戻す"):
@@ -496,18 +581,6 @@ if mode == CARD_MODE:
             st.rerun()
     with flip_cols[1]:
         if st.button("次のカード"):
-            go_next(qdf, history, mode, direction, prefer_weak)
-
-    result_cols = st.columns(2)
-    with result_cols[0]:
-        if st.button("覚えた"):
-            save_history(user_name, row["word"], f"カード:{actual_direction}", "覚えた", "correct", "カード", "カードで覚えたとして記録しました。", history)
-            history = load_history(user_name)
-            go_next(qdf, history, mode, direction, prefer_weak)
-    with result_cols[1]:
-        if st.button("苦手"):
-            save_history(user_name, row["word"], f"カード:{actual_direction}", "苦手", "wrong", "カード", "カードで苦手として記録しました。", history)
-            history = load_history(user_name)
             go_next(qdf, history, mode, direction, prefer_weak)
 
     tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
