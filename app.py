@@ -390,7 +390,7 @@ def ensure_quiz_state(qdf, history, mode, levels, direction, user_name, prefer_w
             set_question(choose_weighted_word(qdf, history, prefer_weak), direction)
 
 
-def go_next(qdf, history, mode, direction, prefer_weak):
+def advance_question(qdf, history, mode, direction, prefer_weak):
     if mode == TEN_QUESTION_MODE:
         next_index = st.session_state.get("ten_index", 0) + 1
         ten_words = st.session_state.get("ten_words", [])
@@ -398,11 +398,15 @@ def go_next(qdf, history, mode, direction, prefer_weak):
             st.session_state.ten_finished = True
             st.session_state.last = None
             st.session_state.clear_answer_input = True
-            st.rerun()
+            return
         st.session_state.ten_index = next_index
         set_question(ten_words[next_index], direction)
     else:
         set_question(choose_weighted_word(qdf, history, prefer_weak), direction)
+
+
+def go_next(qdf, history, mode, direction, prefer_weak):
+    advance_question(qdf, history, mode, direction, prefer_weak)
     st.rerun()
 
 
@@ -412,7 +416,11 @@ def record_card_result(user_name, row, actual_direction, result, history, qdf, m
     else:
         save_history(user_name, row["word"], f"カード:{actual_direction}", "苦手", "wrong", "カード", "カードで苦手として記録しました。", history)
     next_history = load_history(user_name)
-    go_next(qdf, next_history, mode, direction, prefer_weak)
+    advance_question(qdf, next_history, mode, direction, prefer_weak)
+
+
+def toggle_card_flip():
+    st.session_state.card_flipped = not st.session_state.get("card_flipped", False)
 
 
 def prepare_history_for_stats(history):
@@ -694,22 +702,40 @@ if mode == CARD_MODE:
     with st.container(key="card_secondary_actions"):
         flip_cols = st.columns(2, gap="small")
         with flip_cols[0]:
-            if st.button("めくる" if not st.session_state.get("card_flipped", False) else "表に戻す", use_container_width=True):
-                st.session_state.card_flipped = not st.session_state.get("card_flipped", False)
-                st.rerun()
+            st.button(
+                "めくる" if not st.session_state.get("card_flipped", False) else "表に戻す",
+                key="card_flip_button",
+                use_container_width=True,
+                on_click=toggle_card_flip,
+            )
         with flip_cols[1]:
-            if st.button("次のカード", use_container_width=True):
-                go_next(qdf, history, mode, direction, prefer_weak)
+            st.button(
+                "次のカード",
+                key="card_next_button",
+                use_container_width=True,
+                on_click=advance_question,
+                args=(qdf, history, mode, direction, prefer_weak),
+            )
 
     st.markdown('<div class="card-hint">左: 苦手 / 右: 覚えた</div>', unsafe_allow_html=True)
     with st.container(key="card_primary_actions"):
         result_cols = st.columns(2, gap="small")
         with result_cols[0]:
-            if st.button("苦手", use_container_width=True):
-                record_card_result(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak)
+            st.button(
+                "苦手",
+                key="card_wrong_button",
+                use_container_width=True,
+                on_click=record_card_result,
+                args=(user_name, row, actual_direction, "wrong", history, qdf, mode, direction, prefer_weak),
+            )
         with result_cols[1]:
-            if st.button("覚えた", use_container_width=True):
-                record_card_result(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak)
+            st.button(
+                "覚えた",
+                key="card_correct_button",
+                use_container_width=True,
+                on_click=record_card_result,
+                args=(user_name, row, actual_direction, "correct", history, qdf, mode, direction, prefer_weak),
+            )
 
     if st.session_state.get("card_flipped", False):
         st.markdown(
