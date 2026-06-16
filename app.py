@@ -28,6 +28,8 @@ from words import (
     prepare_words,
     quality_report,
     validate_new_word,
+    validate_word_update,
+    update_word_in_csv,
 )
 from storage import storage_label
 from storage import StorageError
@@ -337,7 +339,7 @@ def apply_mobile_styles():
             border-bottom: 0;
         }
         .expander-centered-table {
-            margin-top: -1rem;
+            margin-top: -0.55rem;
             margin-bottom: 0.85rem;
         }
         .score-section-title {
@@ -497,6 +499,108 @@ def render_word_list(words_df):
             "発音": "120px",
         },
     )
+
+
+def word_row_from_fields(word, meaning, accepted, level, pos, example, example_ja, note, ipa):
+    return {
+        "word": clean_form_value(word),
+        "meaning": clean_form_value(meaning),
+        "accepted_answers": clean_form_value(accepted),
+        "example": clean_form_value(example),
+        "note": clean_form_value(note),
+        "level": clean_form_value(level),
+        "pos": clean_form_value(pos),
+        "example_ja": clean_form_value(example_ja),
+        "ipa": clean_form_value(ipa),
+    }
+
+
+def render_word_editor(words_df):
+    st.subheader("単語追加・修正")
+    if st.session_state.get("word_edit_success"):
+        st.success(st.session_state.pop("word_edit_success"))
+
+    edit_mode = st.radio("編集モード", ["新規追加", "既存単語を修正"], horizontal=True)
+
+    if edit_mode == "新規追加":
+        with st.form("add_word_form", clear_on_submit=True):
+            new_word = st.text_input("英単語", placeholder="例：purchase")
+            new_meaning = st.text_input("意味", placeholder="例：購入する")
+            new_accepted = st.text_input("許容表現", placeholder="例：買う／購入")
+            new_level = st.selectbox("レベル", LEVEL_ORDER)
+            new_pos = st.text_input("品詞", placeholder="例：verb")
+            new_example = st.text_area("例文", placeholder="例：We purchased new equipment.")
+            new_example_ja = st.text_area("例文の日本語訳", placeholder="例：私たちは新しい設備を購入しました。")
+            new_note = st.text_input("メモ", placeholder="例：購買・経理で頻出")
+            new_ipa = st.text_input("発音記号", placeholder="例：/ˈpɜːrtʃəs/")
+            add_submitted = st.form_submit_button("単語を追加")
+
+        if add_submitted:
+            new_row = word_row_from_fields(
+                new_word,
+                new_meaning,
+                new_accepted,
+                new_level,
+                new_pos,
+                new_example,
+                new_example_ja,
+                new_note,
+                new_ipa,
+            )
+            validation_errors = validate_new_word(new_row, words_df)
+            if validation_errors:
+                for error in validation_errors:
+                    st.error(error)
+            else:
+                append_word_to_csv(new_row)
+                st.session_state.quiz_signature = None
+                st.session_state.word_edit_success = f"{new_row['word']} を追加しました。"
+                st.rerun()
+        return
+
+    word_options = words_df["word"].astype(str).sort_values().tolist()
+    selected_word = st.selectbox("修正する単語", word_options)
+    selected_row = words_df[words_df["word"].astype(str).eq(selected_word)].iloc[0]
+    level_value = str(selected_row.get("level", "600"))
+    level_index = LEVEL_ORDER.index(level_value) if level_value in LEVEL_ORDER else 0
+
+    with st.form("edit_word_form"):
+        edit_word = st.text_input("英単語", value=str(selected_row.get("word", "")))
+        edit_meaning = st.text_input("意味", value=str(selected_row.get("meaning", "")))
+        edit_accepted = st.text_input("許容表現", value=str(selected_row.get("accepted_answers", "")))
+        edit_level = st.selectbox("レベル", LEVEL_ORDER, index=level_index)
+        edit_pos = st.text_input("品詞", value=str(selected_row.get("pos", "")))
+        edit_example = st.text_area("例文", value=str(selected_row.get("example", "")))
+        edit_example_ja = st.text_area("例文の日本語訳", value=str(selected_row.get("example_ja", "")))
+        edit_note = st.text_input("メモ", value=str(selected_row.get("note", "")))
+        edit_ipa = st.text_input("発音記号", value=str(selected_row.get("ipa", "")))
+        edit_submitted = st.form_submit_button("修正を保存")
+
+    if edit_submitted:
+        updated_row = word_row_from_fields(
+            edit_word,
+            edit_meaning,
+            edit_accepted,
+            edit_level,
+            edit_pos,
+            edit_example,
+            edit_example_ja,
+            edit_note,
+            edit_ipa,
+        )
+        validation_errors = validate_word_update(updated_row, words_df, selected_word)
+        if validation_errors:
+            for error in validation_errors:
+                st.error(error)
+        else:
+            try:
+                update_word_in_csv(selected_word, updated_row)
+            except ValueError as exc:
+                st.error(str(exc))
+                return
+            st.session_state.quiz_signature = None
+            st.session_state.word_edit_success = f"{updated_row['word']} を修正しました。"
+            st.rerun()
 
 
 def render_login():
@@ -1056,8 +1160,7 @@ if mode == CARD_MODE:
         render_weak_ranking(history, df)
 
     with tab_add:
-        st.subheader("単語追加")
-        st.write("カードモード中も、通常画面と同じ単語追加フォームを使えます。")
+        render_word_editor(df)
 
     with tab_quality:
         render_quality_panel()
@@ -1155,42 +1258,7 @@ with tab_weak:
     render_weak_ranking(history, df)
 
 with tab_add:
-    st.subheader("単語追加")
-    if st.session_state.get("add_word_success"):
-        st.success(st.session_state.pop("add_word_success"))
-    with st.form("add_word_form", clear_on_submit=True):
-        new_word = st.text_input("英単語", placeholder="例：purchase")
-        new_meaning = st.text_input("意味", placeholder="例：購入する")
-        new_accepted = st.text_input("許容表現", placeholder="例：買う／購入")
-        new_level = st.selectbox("レベル", LEVEL_ORDER)
-        new_pos = st.text_input("品詞", placeholder="例：verb")
-        new_example = st.text_area("例文", placeholder="例：We purchased new equipment.")
-        new_example_ja = st.text_area("例文の日本語訳", placeholder="例：私たちは新しい設備を購入しました。")
-        new_note = st.text_input("メモ", placeholder="例：購買・経理で頻出")
-        new_ipa = st.text_input("発音記号", placeholder="例：/ˈpɜːrtʃəs/")
-        add_submitted = st.form_submit_button("単語を追加")
-
-    if add_submitted:
-        new_row = {
-            "word": clean_form_value(new_word),
-            "meaning": clean_form_value(new_meaning),
-            "accepted_answers": clean_form_value(new_accepted),
-            "example": clean_form_value(new_example),
-            "note": clean_form_value(new_note),
-            "level": clean_form_value(new_level),
-            "pos": clean_form_value(new_pos),
-            "example_ja": clean_form_value(new_example_ja),
-            "ipa": clean_form_value(new_ipa),
-        }
-        validation_errors = validate_new_word(new_row, df)
-        if validation_errors:
-            for error in validation_errors:
-                st.error(error)
-        else:
-            append_word_to_csv(new_row)
-            st.session_state.quiz_signature = None
-            st.session_state.add_word_success = f"{new_row['word']} を追加しました。"
-            st.rerun()
+    render_word_editor(df)
 
 with tab_quality:
     render_quality_panel()

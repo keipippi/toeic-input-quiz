@@ -100,6 +100,28 @@ def validate_new_word(row: dict, existing_df: pd.DataFrame) -> list[str]:
     return errors
 
 
+def validate_word_update(row: dict, existing_df: pd.DataFrame, original_word: str) -> list[str]:
+    errors = []
+    required = {
+        "word": "英単語",
+        "meaning": "意味",
+        "accepted_answers": "許容表現",
+        "example": "例文",
+        "pos": "品詞",
+        "example_ja": "例文の日本語訳",
+    }
+    for key, label_text in required.items():
+        if not row.get(key):
+            errors.append(f"{label_text}を入力してください。")
+
+    original_key = normalize_word_key(original_word)
+    new_key = normalize_word_key(row.get("word", ""))
+    existing_keys = set(existing_df["word"].astype(str).map(normalize_word_key))
+    if new_key != original_key and new_key in existing_keys:
+        errors.append("同じ英単語がすでに登録されています。")
+    return errors
+
+
 def append_word_to_csv(row: dict):
     current = pd.read_csv(WORDS_PATH)
     for col in REQUIRED_COLUMNS:
@@ -107,6 +129,24 @@ def append_word_to_csv(row: dict):
             current[col] = ""
     next_df = pd.concat([current[REQUIRED_COLUMNS], pd.DataFrame([row], columns=REQUIRED_COLUMNS)], ignore_index=True)
     next_df.to_csv(WORDS_PATH, index=False)
+    load_base_words.clear()
+
+
+def update_word_in_csv(original_word: str, row: dict):
+    current = pd.read_csv(WORDS_PATH)
+    for col in REQUIRED_COLUMNS:
+        if col not in current.columns:
+            current[col] = ""
+
+    word_keys = current["word"].astype(str).map(normalize_word_key)
+    target_key = normalize_word_key(original_word)
+    matches = current.index[word_keys == target_key].tolist()
+    if not matches:
+        raise ValueError("修正対象の単語が見つかりませんでした。")
+
+    for col in REQUIRED_COLUMNS:
+        current.loc[matches[0], col] = row.get(col, "")
+    current[REQUIRED_COLUMNS].to_csv(WORDS_PATH, index=False)
     load_base_words.clear()
 
 
