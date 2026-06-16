@@ -274,6 +274,13 @@ def apply_mobile_styles():
             overflow-x: auto;
             padding-bottom: 1px;
         }
+        .app-table-fit {
+            max-height: none !important;
+            overflow-y: visible;
+        }
+        .app-table-fit th {
+            position: static;
+        }
         .app-table-wide table {
             width: max-content;
             min-width: 100%;
@@ -330,7 +337,8 @@ def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=T
     header_height = 40
     scrollbar_gutter = 10 if wide else 0
     natural_height = header_height + len(safe_df) * row_height + scrollbar_gutter + 2
-    max_height = natural_height if fit_small and len(safe_df) <= 6 and not wide else min(height, natural_height)
+    should_fit = fit_small and len(safe_df) <= 6 and not wide
+    max_height = natural_height if should_fit else min(height, natural_height)
     colgroup = ""
     if column_widths:
         widths = []
@@ -350,6 +358,8 @@ def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=T
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
     frame_class = "app-table-wide" if wide else "app-table-wrap"
+    if should_fit:
+        frame_class += " app-table-fit"
     st.markdown(
         f'<div class="app-table-frame {frame_class}" style="--table-height: {max_height}px;">{html_table}</div>',
         unsafe_allow_html=True,
