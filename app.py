@@ -274,13 +274,6 @@ def apply_mobile_styles():
             overflow-x: auto;
             padding-bottom: 1px;
         }
-        .app-table-fit {
-            max-height: none !important;
-            overflow-y: visible;
-        }
-        .app-table-fit th {
-            position: static;
-        }
         .app-table-wide table {
             width: max-content;
             min-width: 100%;
@@ -304,6 +297,41 @@ def apply_mobile_styles():
             box-shadow: 0 1px 0 #e4e7ec;
         }
         .app-table-frame tr:last-child td {
+            border-bottom: 0;
+        }
+        .app-table-plain {
+            overflow: visible;
+            border: 1px solid #e4e7ec;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+        .app-table-plain table {
+            width: 100%;
+            border: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            table-layout: fixed;
+            font-size: 0.9rem;
+        }
+        .app-table-plain th,
+        .app-table-plain td {
+            padding: 0.48rem 0.6rem;
+            border-bottom: 1px solid #eef1f5;
+            text-align: left !important;
+            vertical-align: top;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .app-table-plain th {
+            background: #f8fafc;
+            color: #526078;
+            font-weight: 700;
+            border-bottom: 1px solid #e4e7ec;
+        }
+        .app-table-plain tr:last-child td {
             border-bottom: 0;
         }
         @media (max-width: 640px) {
@@ -357,9 +385,14 @@ def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=T
         f"<thead><tr>{headers}</tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
-    frame_class = "app-table-wide" if wide else "app-table-wrap"
     if should_fit:
-        frame_class += " app-table-fit"
+        st.markdown(
+            f'<div class="app-table-plain">{html_table}</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    frame_class = "app-table-wide" if wide else "app-table-wrap"
     st.markdown(
         f'<div class="app-table-frame {frame_class}" style="--table-height: {max_height}px;">{html_table}</div>',
         unsafe_allow_html=True,
