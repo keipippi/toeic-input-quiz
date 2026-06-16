@@ -316,7 +316,7 @@ def clear_answer_input_before_render():
 
 
 def focus_answer_input():
-    token = st.session_state.get("scroll_to_top_token", 0)
+    token = f"{st.session_state.get('scroll_to_top_token', 0)}:{bool(st.session_state.get('last'))}"
     if st.session_state.get("last_focus_answer_token") == token:
         return
     st.session_state.last_focus_answer_token = token
@@ -405,9 +405,17 @@ def advance_question(qdf, history, mode, direction, prefer_weak):
         set_question(choose_weighted_word(qdf, history, prefer_weak), direction)
 
 
-def go_next(qdf, history, mode, direction, prefer_weak):
-    advance_question(qdf, history, mode, direction, prefer_weak)
-    st.rerun()
+def submit_answer(user_name, row, actual_direction, history, mode):
+    ans = st.session_state.get(ANSWER_INPUT_KEY, "")
+    judge = judge_answer(row, ans, actual_direction)
+    save_history(user_name, row["word"], actual_direction, ans, judge["result"], judge["mode"], judge["reason"], history)
+    if mode == TEN_QUESTION_MODE:
+        st.session_state.ten_results.append({
+            "word": row["word"],
+            "result": judge["result"],
+            "user_answer": ans,
+        })
+    st.session_state.last = {"judge": judge, "answer": ans}
 
 
 def record_card_result(user_name, row, actual_direction, result, history, qdf, mode, direction, prefer_weak):
@@ -824,24 +832,21 @@ clear_answer_input_before_render()
 with st.form("answer_form"):
     ans = st.text_input("答え", key=ANSWER_INPUT_KEY, placeholder=placeholder)
     button_label = "次へ" if st.session_state.last else "判定する"
-    submitted = st.form_submit_button(button_label)
-focus_answer_input()
-
-if submitted:
     if st.session_state.last:
-        go_next(qdf, history, mode, direction, prefer_weak)
+        st.form_submit_button(
+            button_label,
+            use_container_width=True,
+            on_click=advance_question,
+            args=(qdf, history, mode, direction, prefer_weak),
+        )
     else:
-        judge = judge_answer(row, ans, actual_direction)
-        save_history(user_name, row["word"], actual_direction, ans, judge["result"], judge["mode"], judge["reason"], history)
-        if mode == TEN_QUESTION_MODE:
-            st.session_state.ten_results.append({
-                "word": row["word"],
-                "result": judge["result"],
-                "user_answer": ans,
-            })
-        st.session_state.last = {"judge": judge, "answer": ans}
-        history = load_history(user_name)
-        st.rerun()
+        st.form_submit_button(
+            button_label,
+            use_container_width=True,
+            on_click=submit_answer,
+            args=(user_name, row, actual_direction, history, mode),
+        )
+focus_answer_input()
 
 if st.session_state.last:
     j = st.session_state.last["judge"]
@@ -860,14 +865,8 @@ if st.session_state.last:
         st.write(row["example_ja"])
         st.write(row["note"])
 
-action_cols = st.columns(2, gap="small")
-with action_cols[0]:
-    next_disabled = mode == TEN_QUESTION_MODE and not st.session_state.last
-    if st.button("次の問題", disabled=next_disabled, use_container_width=True):
-        go_next(qdf, history, mode, direction, prefer_weak)
-with action_cols[1]:
-    if st.button("答えを見る", use_container_width=True):
-        st.info(f"英単語: {row['word']} / 意味: {row['meaning']} / 許容訳: {row['accepted_answers']}")
+if st.button("答えを見る", use_container_width=True):
+    st.info(f"英単語: {row['word']} / 意味: {row['meaning']} / 許容訳: {row['accepted_answers']}")
 
 tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
 
