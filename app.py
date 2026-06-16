@@ -353,6 +353,26 @@ def apply_mobile_styles():
             div[data-testid="stMetric"] {
                 height: 5.9rem;
             }
+            .app-table-wrap,
+            .app-table-plain {
+                overflow-x: auto;
+                scrollbar-color: #cbd5e1 transparent;
+                scrollbar-width: thin;
+            }
+            .app-table-wrap table,
+            .app-table-plain table {
+                width: max-content;
+                min-width: 100%;
+                table-layout: auto;
+            }
+            .app-table-wrap th,
+            .app-table-wrap td,
+            .app-table-plain th,
+            .app-table-plain td {
+                white-space: nowrap;
+                overflow-wrap: normal;
+                word-break: normal;
+            }
         }
         </style>
         """,
