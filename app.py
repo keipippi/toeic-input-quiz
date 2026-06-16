@@ -315,6 +315,34 @@ def clear_answer_input_before_render():
     st.session_state.clear_answer_input = False
 
 
+def focus_answer_input():
+    token = st.session_state.get("scroll_to_top_token", 0)
+    if st.session_state.get("last_focus_answer_token") == token:
+        return
+    st.session_state.last_focus_answer_token = token
+    components.html(
+        """
+        <script>
+        const focusAnswer = () => {
+            const doc = window.parent.document;
+            const inputs = Array.from(doc.querySelectorAll('input[type="text"]'));
+            const answer = inputs.find((input) => {
+                const label = input.closest('[data-testid="stTextInput"]')?.innerText || "";
+                return label.includes("答え");
+            }) || inputs[inputs.length - 1];
+            if (answer) {
+                answer.focus();
+                answer.select();
+            }
+        };
+        setTimeout(focusAnswer, 120);
+        setTimeout(focusAnswer, 450);
+        </script>
+        """,
+        height=0,
+    )
+
+
 def quiz_signature(qdf, mode, levels, direction, user_name, prefer_weak):
     return {
         "mode": mode,
@@ -771,6 +799,7 @@ with st.form("answer_form"):
     ans = st.text_input("答え", key=ANSWER_INPUT_KEY, placeholder=placeholder)
     button_label = "次へ" if st.session_state.last else "判定する"
     submitted = st.form_submit_button(button_label)
+focus_answer_input()
 
 if submitted:
     if st.session_state.last:
