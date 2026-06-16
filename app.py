@@ -336,10 +336,15 @@ def apply_mobile_styles():
         .app-table-plain tr:last-child td {
             border-bottom: 0;
         }
-        div[data-testid="stExpander"] .app-table-frame,
-        div[data-testid="stExpander"] .app-table-plain {
-            margin-top: -0.35rem;
-            margin-bottom: -0.15rem;
+        .expander-centered-table {
+            margin-top: -1rem;
+            margin-bottom: 0.85rem;
+        }
+        .score-section-title {
+            margin: 1.35rem 0 0.55rem;
+            color: #1f2937;
+            font-size: 1rem;
+            font-weight: 650;
         }
         @media (max-width: 640px) {
             .block-container {
@@ -383,7 +388,7 @@ def apply_mobile_styles():
     )
 
 
-def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=True):
+def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=True, extra_class=""):
     if df.empty:
         st.write("表示するデータがありません。")
         return
@@ -413,15 +418,17 @@ def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=T
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
     if should_fit:
+        class_attr = f"app-table-plain {html.escape(extra_class, quote=True)}".strip()
         st.markdown(
-            f'<div class="app-table-plain">{html_table}</div>',
+            f'<div class="{class_attr}">{html_table}</div>',
             unsafe_allow_html=True,
         )
         return
 
     frame_class = "app-table-wide" if wide else "app-table-wrap"
+    class_attr = f"app-table-frame {frame_class} {html.escape(extra_class, quote=True)}".strip()
     st.markdown(
-        f'<div class="app-table-frame {frame_class}" style="--table-height: {max_height}px;">{html_table}</div>',
+        f'<div class="{class_attr}" style="--table-height: {max_height}px;">{html_table}</div>',
         unsafe_allow_html=True,
     )
 
@@ -796,15 +803,16 @@ def render_score_dashboard(history, words_df, user_name):
             level_stats.sort_values("level").rename(columns={"level": "レベル"}),
             height=160,
             column_widths={"レベル": "25%", "解答数": "25%", "正解数": "25%", "正解率": "25%"},
+            extra_class="expander-centered-table",
         )
 
     weak = h[h["result"].ne("correct")]
     if len(weak):
-        st.write("よく間違える単語")
+        st.markdown('<div class="score-section-title">よく間違える単語</div>', unsafe_allow_html=True)
         weak_top = weak.groupby("word").size().reset_index(name="ミス回数").sort_values("ミス回数", ascending=False).head(5)
         render_app_table(weak_top.rename(columns={"word": "単語"}), height=190, column_widths={"単語": "72%", "ミス回数": "28%"})
 
-    st.write("最近の履歴")
+    st.markdown('<div class="score-section-title">最近の履歴</div>', unsafe_allow_html=True)
     recent = h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]]
     render_app_table(recent.rename(columns={
         "word": "単語",
