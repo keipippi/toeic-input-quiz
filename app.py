@@ -321,16 +321,16 @@ def apply_mobile_styles():
     )
 
 
-def render_app_table(df, height=320, wide=False, column_widths=None):
+def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=True):
     if df.empty:
         st.write("表示するデータがありません。")
         return
     safe_df = df.reset_index(drop=True).fillna("")
-    row_height = 38 if wide else 42
-    header_height = 42
+    row_height = 38 if wide else 36
+    header_height = 40
     scrollbar_gutter = 10 if wide else 0
     natural_height = header_height + len(safe_df) * row_height + scrollbar_gutter + 2
-    max_height = min(height, natural_height)
+    max_height = natural_height if fit_small and len(safe_df) <= 6 and not wide else min(height, natural_height)
     colgroup = ""
     if column_widths:
         widths = []
@@ -741,7 +741,7 @@ def render_score_dashboard(history, words_df, user_name):
         "result": "結果",
         "direction": "方向",
         "next_review": "次回復習",
-    }).reset_index(drop=True), height=220, column_widths={"単語": "32%", "結果": "16%", "方向": "24%", "次回復習": "28%"})
+    }).reset_index(drop=True), height=220, column_widths={"単語": "32%", "結果": "16%", "方向": "24%", "次回復習": "28%"}, fit_small=False)
 
 
 def render_quality_panel():
