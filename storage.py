@@ -6,8 +6,10 @@ import requests
 
 USER_COLUMNS = ["user_id", "display_name", "salt", "pin_hash", "created_at"]
 HISTORY_COLUMNS = ["timestamp", "user", "word", "direction", "user_answer", "result", "mode", "reason", "next_review"]
+SETTINGS_COLUMNS = ["user_id", "level_preset", "manual_levels", "updated_at"]
 USERS_TABLE = "toeic_users"
 HISTORY_TABLE = "toeic_history"
+SETTINGS_TABLE = "toeic_user_settings"
 
 
 class StorageError(RuntimeError):
@@ -98,3 +100,20 @@ def append_remote_history(row: dict):
 
 def delete_remote_history(user_name: str):
     supabase_request("DELETE", HISTORY_TABLE, params={"user": f"eq.{user_name}"})
+
+
+def remote_user_settings(user_id: str) -> pd.DataFrame:
+    rows = supabase_request(
+        "GET",
+        SETTINGS_TABLE,
+        params={"select": ",".join(SETTINGS_COLUMNS), "user_id": f"eq.{user_id}", "limit": "1"},
+    )
+    return pd.DataFrame(rows, columns=SETTINGS_COLUMNS)
+
+
+def upsert_remote_user_settings(row: dict):
+    existing = remote_user_settings(row["user_id"])
+    if existing.empty:
+        supabase_request("POST", SETTINGS_TABLE, json=row)
+    else:
+        supabase_request("PATCH", SETTINGS_TABLE, params={"user_id": f"eq.{row['user_id']}"}, json=row)

@@ -33,6 +33,7 @@ from words import (
 )
 from storage import storage_label
 from storage import StorageError
+from user_settings import load_user_settings, save_user_settings
 
 TEN_QUESTION_MODE = "10問連続"
 CARD_MODE = "カード"
@@ -1004,12 +1005,24 @@ with st.sidebar:
     st.download_button("CSVテンプレートをダウンロード", data=",".join(REQUIRED_COLUMNS) + "\n", file_name="toeic_words_template.csv", mime="text/csv")
 
     available_levels = [lv for lv in LEVEL_ORDER if lv in set(df["level"].astype(str))]
-    preset = st.radio("レベル選択", ["600だけ", "600+700", "全部", "手動で選ぶ"], index=0)
+    user_settings = load_user_settings(user_name)
+    preset_options = ["600だけ", "600+700", "全部", "手動で選ぶ"]
+    saved_preset = user_settings.get("level_preset", "600だけ")
+    preset_index = preset_options.index(saved_preset) if saved_preset in preset_options else 0
+    saved_manual_levels = [
+        level for level in str(user_settings.get("manual_levels", "")).split(",")
+        if level in available_levels
+    ]
+    preset = st.radio("レベル選択", preset_options, index=preset_index)
     if preset == "手動で選ぶ":
-        levels = st.multiselect("レベル", available_levels, default=available_levels)
+        levels = st.multiselect("レベル", available_levels, default=saved_manual_levels or available_levels)
     else:
         levels = [lv for lv in LEVEL_PRESETS[preset] if lv in available_levels]
         st.caption("選択中: " + (" / ".join(levels) if levels else "該当レベルなし"))
+    setting_key = (preset, tuple(levels))
+    if st.session_state.get("saved_level_setting_key") != setting_key:
+        save_user_settings(user_name, preset, levels)
+        st.session_state.saved_level_setting_key = setting_key
 
     mode_label = st.radio("学習メニュー", [option["label"] for option in MODE_OPTIONS], index=0)
     mode_option = MODE_LABEL_TO_OPTION[mode_label]
@@ -1151,7 +1164,7 @@ if mode == CARD_MODE:
             st.write(row["example_ja"])
             st.write(row["note"])
 
-    tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
+    tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "追加・修正", "品質", "単語"])
 
     with tab_score:
         render_score_dashboard(history, df, user_name)
@@ -1244,7 +1257,7 @@ if st.session_state.last:
 if st.button("答えを見る", use_container_width=True):
     st.info(f"英単語: {row['word']} / 意味: {row['meaning']} / 許容訳: {row['accepted_answers']}")
 
-tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "単語追加", "品質", "単語"])
+tab_score, tab_weak, tab_add, tab_quality, tab_words = st.tabs(["成績", "苦手", "追加・修正", "品質", "単語"])
 
 with tab_score:
     render_score_dashboard(history, df, user_name)

@@ -19,10 +19,18 @@ create table if not exists toeic_history (
   next_review text not null
 );
 
+create table if not exists toeic_user_settings (
+  user_id text primary key,
+  level_preset text not null default '600だけ',
+  manual_levels text not null default '',
+  updated_at text not null
+);
+
 create index if not exists toeic_history_user_idx on toeic_history ("user");
 create index if not exists toeic_history_word_idx on toeic_history (word);
 
 grant usage on schema public to service_role;
 grant select, insert, update, delete on public.toeic_users to service_role;
 grant select, insert, update, delete on public.toeic_history to service_role;
+grant select, insert, update, delete on public.toeic_user_settings to service_role;
 grant usage, select on sequence public.toeic_history_id_seq to service_role;

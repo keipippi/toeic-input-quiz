@@ -1,4 +1,5 @@
 users.csv
+user_settings.csv
 history_*.csv
 *.tmp
 __pycache__/
