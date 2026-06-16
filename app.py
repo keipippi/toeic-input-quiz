@@ -216,31 +216,53 @@ def apply_mobile_styles():
             max-width: 100%;
             overflow-x: auto;
         }
-        .scroll-table {
+        .app-table-frame {
             max-height: var(--table-height, 360px);
             overflow-y: auto;
-            overflow-x: hidden;
             border: 1px solid #e4e7ec;
             border-radius: 8px;
             background: #ffffff;
         }
-        .scroll-table table {
+        .app-table-frame table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 0.92rem;
+            font-size: 0.9rem;
         }
-        .scroll-table th,
-        .scroll-table td {
-            padding: 0.65rem 0.7rem;
+        .app-table-frame th,
+        .app-table-frame td {
+            padding: 0.48rem 0.6rem;
             border-bottom: 1px solid #eef1f5;
-            text-align: left;
+            text-align: left !important;
             vertical-align: top;
+            line-height: 1.35;
+        }
+        .app-table-wrap {
+            overflow-x: hidden;
+        }
+        .app-table-wrap table {
+            table-layout: fixed;
+        }
+        .app-table-wrap th,
+        .app-table-wrap td {
             overflow-wrap: anywhere;
             word-break: break-word;
             white-space: normal;
         }
-        .scroll-table th {
+        .app-table-wide {
+            overflow-x: auto;
+        }
+        .app-table-wide table {
+            width: max-content;
+            min-width: 100%;
+            table-layout: auto;
+        }
+        .app-table-wide th,
+        .app-table-wide td {
+            white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: normal;
+        }
+        .app-table-frame th {
             position: sticky;
             top: 0;
             z-index: 1;
@@ -248,7 +270,7 @@ def apply_mobile_styles():
             color: #526078;
             font-weight: 700;
         }
-        .scroll-table tr:last-child td {
+        .app-table-frame tr:last-child td {
             border-bottom: 0;
         }
         @media (max-width: 640px) {
@@ -273,14 +295,15 @@ def apply_mobile_styles():
     )
 
 
-def render_scroll_table(df, height=360):
+def render_app_table(df, height=320, wide=False):
     if df.empty:
         st.write("表示するデータがありません。")
         return
     safe_df = df.reset_index(drop=True).fillna("")
-    html_table = safe_df.to_html(index=False, escape=True)
+    html_table = safe_df.to_html(index=False, escape=True, classes="app-table")
+    frame_class = "app-table-wide" if wide else "app-table-wrap"
     st.markdown(
-        f'<div class="scroll-table" style="--table-height: {height}px;">{html_table}</div>',
+        f'<div class="app-table-frame {frame_class}" style="--table-height: {height}px;">{html_table}</div>',
         unsafe_allow_html=True,
     )
 
@@ -314,7 +337,7 @@ def render_weak_ranking(history, words_df):
         "correct": "正解",
         "wrong": "ミス",
     })
-    render_scroll_table(ranking[["単語", "回数", "正解", "ミス", "正解率", "優先度"]], height=380)
+    render_app_table(ranking[["単語", "回数", "正解", "ミス", "正解率", "優先度"]], height=320)
 
 
 def render_word_list(words_df):
@@ -329,7 +352,7 @@ def render_word_list(words_df):
         "example_ja": "例文訳",
         "ipa": "発音",
     })
-    render_scroll_table(display_df, height=430)
+    render_app_table(display_df, height=360, wide=True)
 
 
 def render_login():
@@ -609,7 +632,7 @@ def render_score_dashboard(history, words_df, user_name):
         if due_table.empty:
             st.write("復習待ちの単語はありません。")
         else:
-            render_scroll_table(due_table, height=320)
+            render_app_table(due_table, height=280)
 
     with st.expander("レベル別の正解率", expanded=True):
         level_history = h.merge(words_df[["word", "level"]], on="word", how="left")
@@ -619,22 +642,22 @@ def render_score_dashboard(history, words_df, user_name):
         ).reset_index()
         level_stats["正解率"] = (level_stats["正解数"] / level_stats["解答数"] * 100).map(format_percent)
         level_stats["level"] = level_stats["level"].fillna("追加CSV")
-        st.table(level_stats.sort_values("level").rename(columns={"level": "レベル"}).reset_index(drop=True))
+        render_app_table(level_stats.sort_values("level").rename(columns={"level": "レベル"}), height=180)
 
     weak = h[h["result"].ne("correct")]
     if len(weak):
         st.write("よく間違える単語")
         weak_top = weak.groupby("word").size().reset_index(name="ミス回数").sort_values("ミス回数", ascending=False).head(5)
-        st.table(weak_top.rename(columns={"word": "単語"}).reset_index(drop=True))
+        render_app_table(weak_top.rename(columns={"word": "単語"}), height=220)
 
     st.write("最近の履歴")
     recent = h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]]
-    render_scroll_table(recent.rename(columns={
+    render_app_table(recent.rename(columns={
         "word": "単語",
         "result": "結果",
         "direction": "方向",
         "next_review": "次回復習",
-    }).reset_index(drop=True), height=300)
+    }).reset_index(drop=True), height=240)
 
 
 def render_quality_panel():
@@ -650,7 +673,7 @@ def render_quality_panel():
     level_df = pd.DataFrame(
         [{"レベル": level, "語数": count} for level, count in summary["level_counts"].items()]
     )
-    st.table(level_df)
+    render_app_table(level_df, height=180)
 
     if issue_df.empty:
         st.success("大きな問題は見つかりませんでした。")
@@ -660,7 +683,7 @@ def render_quality_panel():
     selected_type = st.selectbox("問題タイプ", issue_types)
     filtered = issue_df if selected_type == "すべて" else issue_df[issue_df["type"].eq(selected_type)]
     st.caption(f"{len(filtered)}件を表示中")
-    render_scroll_table(filtered, height=420)
+    render_app_table(filtered, height=320)
 
 
 st.set_page_config(page_title="TOEIC入力式単語練習", layout="centered")
@@ -764,7 +787,7 @@ if mode == TEN_QUESTION_MODE and st.session_state.get("ten_finished"):
             "result": "結果",
             "user_answer": "回答",
         })
-        render_scroll_table(result_df, height=320)
+        render_app_table(result_df, height=260)
     if st.button("もう一度10問に挑戦", use_container_width=True):
         start_ten_question_round(qdf, direction, history, prefer_weak)
         st.rerun()
