@@ -298,7 +298,8 @@ def apply_mobile_styles():
         }
         .app-table-frame tr:last-child td {
             border-bottom: 0;
-            padding-bottom: 0.22rem;
+            padding-top: 0.26rem;
+            padding-bottom: 0.08rem;
         }
         .app-table-plain {
             overflow: visible;
@@ -334,7 +335,8 @@ def apply_mobile_styles():
         }
         .app-table-plain tr:last-child td {
             border-bottom: 0;
-            padding-bottom: 0.22rem;
+            padding-top: 0.26rem;
+            padding-bottom: 0.08rem;
         }
         @media (max-width: 640px) {
             .block-container {
@@ -363,8 +365,8 @@ def render_app_table(df, height=320, wide=False, column_widths=None, fit_small=T
         st.write("表示するデータがありません。")
         return
     safe_df = df.reset_index(drop=True).fillna("")
-    row_height = 32 if wide else 30
-    header_height = 34
+    row_height = 32 if wide else 29
+    header_height = 33
     scrollbar_gutter = 10 if wide else 0
     natural_height = header_height + len(safe_df) * row_height + scrollbar_gutter + 2
     should_fit = fit_small and len(safe_df) <= 6 and not wide
