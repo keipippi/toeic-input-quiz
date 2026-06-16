@@ -338,6 +338,10 @@ def apply_mobile_styles():
             padding-top: 0.26rem;
             padding-bottom: 0.08rem;
         }
+        div[data-testid="stExpander"] .app-table-frame,
+        div[data-testid="stExpander"] .app-table-plain {
+            margin-bottom: -0.65rem;
+        }
         @media (max-width: 640px) {
             .block-container {
                 padding-left: 0.85rem;
