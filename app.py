@@ -35,6 +35,7 @@ from storage import StorageError
 TEN_QUESTION_MODE = "10問連続"
 CARD_MODE = "カード"
 WEAK_PRIORITY_DEFAULT = True
+ANSWER_INPUT_KEY = "answer_input"
 MODE_OPTIONS = [
     {
         "label": "通常練習",
@@ -307,6 +308,13 @@ def scroll_to_top_on_new_question():
     )
 
 
+def clear_answer_input_before_render():
+    if not st.session_state.get("clear_answer_input"):
+        return
+    st.session_state[ANSWER_INPUT_KEY] = ""
+    st.session_state.clear_answer_input = False
+
+
 def quiz_signature(qdf, mode, levels, direction, user_name, prefer_weak):
     return {
         "mode": mode,
@@ -323,7 +331,7 @@ def set_question(word, direction):
     st.session_state.quiz_direction = choose_direction(direction)
     st.session_state.card_flipped = False
     st.session_state.last = None
-    st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
+    st.session_state.clear_answer_input = True
     st.session_state.scroll_to_top_token = st.session_state.get("scroll_to_top_token", 0) + 1
 
 
@@ -361,7 +369,7 @@ def go_next(qdf, history, mode, direction, prefer_weak):
         if next_index >= len(ten_words):
             st.session_state.ten_finished = True
             st.session_state.last = None
-            st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
+            st.session_state.clear_answer_input = True
             st.rerun()
         st.session_state.ten_index = next_index
         set_question(ten_words[next_index], direction)
@@ -596,8 +604,8 @@ if qdf.empty:
 
 if "last" not in st.session_state:
     st.session_state.last = None
-if "answer_version" not in st.session_state:
-    st.session_state.answer_version = 0
+if ANSWER_INPUT_KEY not in st.session_state:
+    st.session_state[ANSWER_INPUT_KEY] = ""
 
 ensure_quiz_state(qdf, history, mode, levels, direction, user_name, prefer_weak)
 scroll_to_top_on_new_question()
@@ -758,9 +766,9 @@ st.caption(f"ユーザー: {user_name}")
 if prefer_weak:
     st.caption(priority_label(row["word"], history))
 
-answer_key = f"answer_input_{st.session_state.answer_version}"
+clear_answer_input_before_render()
 with st.form("answer_form"):
-    ans = st.text_input("答え", key=answer_key, placeholder=placeholder)
+    ans = st.text_input("答え", key=ANSWER_INPUT_KEY, placeholder=placeholder)
     button_label = "次へ" if st.session_state.last else "判定する"
     submitted = st.form_submit_button(button_label)
 
@@ -813,7 +821,7 @@ with tab_score:
     if st.button("このユーザーの履歴リセット", use_container_width=True):
         clear_history(user_name)
         st.session_state.last = None
-        st.session_state.answer_version = st.session_state.get("answer_version", 0) + 1
+        st.session_state.clear_answer_input = True
         st.rerun()
 
 with tab_weak:
