@@ -216,6 +216,41 @@ def apply_mobile_styles():
             max-width: 100%;
             overflow-x: auto;
         }
+        .scroll-table {
+            max-height: var(--table-height, 360px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #e4e7ec;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+        .scroll-table table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 0.92rem;
+        }
+        .scroll-table th,
+        .scroll-table td {
+            padding: 0.65rem 0.7rem;
+            border-bottom: 1px solid #eef1f5;
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .scroll-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #f8fafc;
+            color: #526078;
+            font-weight: 700;
+        }
+        .scroll-table tr:last-child td {
+            border-bottom: 0;
+        }
         @media (max-width: 640px) {
             .block-container {
                 padding-left: 0.85rem;
@@ -236,6 +271,65 @@ def apply_mobile_styles():
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_scroll_table(df, height=360):
+    if df.empty:
+        st.write("表示するデータがありません。")
+        return
+    safe_df = df.reset_index(drop=True).fillna("")
+    html_table = safe_df.to_html(index=False, escape=True)
+    st.markdown(
+        f'<div class="scroll-table" style="--table-height: {height}px;">{html_table}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def format_percent(value):
+    try:
+        return f"{float(value):.1f}%"
+    except (TypeError, ValueError):
+        return ""
+
+
+def render_weak_ranking(history, words_df):
+    st.subheader("苦手ランキング")
+    if not len(history):
+        st.write("まだデータがありません。")
+        return
+
+    ranking = history.groupby("word").agg(
+        attempts=("result", "count"),
+        correct=("result", lambda s: (s == "correct").sum()),
+        wrong=("result", lambda s: (s != "correct").sum()),
+    ).reset_index()
+    ranking["正解率_num"] = ranking["correct"] / ranking["attempts"] * 100
+    scores = priority_scores(words_df, history)
+    ranking["優先度"] = ranking["word"].map(scores).fillna(1.0).round(1)
+    ranking = ranking.sort_values(["優先度", "正解率_num", "attempts"], ascending=[False, True, False])
+    ranking["正解率"] = ranking["正解率_num"].map(format_percent)
+    ranking = ranking.rename(columns={
+        "word": "単語",
+        "attempts": "回数",
+        "correct": "正解",
+        "wrong": "ミス",
+    })
+    render_scroll_table(ranking[["単語", "回数", "正解", "ミス", "正解率", "優先度"]], height=380)
+
+
+def render_word_list(words_df):
+    display_df = words_df.rename(columns={
+        "word": "単語",
+        "meaning": "意味",
+        "accepted_answers": "許容表現",
+        "example": "例文",
+        "note": "メモ",
+        "level": "レベル",
+        "pos": "品詞",
+        "example_ja": "例文訳",
+        "ipa": "発音",
+    })
+    render_scroll_table(display_df, height=430)
 
 
 def render_login():
@@ -515,7 +609,7 @@ def render_score_dashboard(history, words_df, user_name):
         if due_table.empty:
             st.write("復習待ちの単語はありません。")
         else:
-            st.dataframe(due_table, use_container_width=True, hide_index=True)
+            render_scroll_table(due_table, height=320)
 
     with st.expander("レベル別の正解率", expanded=True):
         level_history = h.merge(words_df[["word", "level"]], on="word", how="left")
@@ -523,7 +617,7 @@ def render_score_dashboard(history, words_df, user_name):
             解答数=("result", "count"),
             正解数=("result", lambda s: int((s == "correct").sum())),
         ).reset_index()
-        level_stats["正解率"] = (level_stats["正解数"] / level_stats["解答数"] * 100).round(1)
+        level_stats["正解率"] = (level_stats["正解数"] / level_stats["解答数"] * 100).map(format_percent)
         level_stats["level"] = level_stats["level"].fillna("追加CSV")
         st.table(level_stats.sort_values("level").rename(columns={"level": "レベル"}).reset_index(drop=True))
 
@@ -535,12 +629,12 @@ def render_score_dashboard(history, words_df, user_name):
 
     st.write("最近の履歴")
     recent = h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]]
-    st.table(recent.rename(columns={
+    render_scroll_table(recent.rename(columns={
         "word": "単語",
         "result": "結果",
         "direction": "方向",
         "next_review": "次回復習",
-    }).reset_index(drop=True))
+    }).reset_index(drop=True), height=300)
 
 
 def render_quality_panel():
@@ -566,7 +660,7 @@ def render_quality_panel():
     selected_type = st.selectbox("問題タイプ", issue_types)
     filtered = issue_df if selected_type == "すべて" else issue_df[issue_df["type"].eq(selected_type)]
     st.caption(f"{len(filtered)}件を表示中")
-    st.dataframe(filtered, use_container_width=True, hide_index=True)
+    render_scroll_table(filtered, height=420)
 
 
 st.set_page_config(page_title="TOEIC入力式単語練習", layout="centered")
@@ -665,7 +759,12 @@ if mode == TEN_QUESTION_MODE and st.session_state.get("ten_finished"):
     m2.metric("ほぼ正解", almost_count)
     m3.metric("不正解", wrong_count)
     if results:
-        st.dataframe(pd.DataFrame(results)[["word", "result", "user_answer"]], use_container_width=True, hide_index=True)
+        result_df = pd.DataFrame(results)[["word", "result", "user_answer"]].rename(columns={
+            "word": "単語",
+            "result": "結果",
+            "user_answer": "回答",
+        })
+        render_scroll_table(result_df, height=320)
     if st.button("もう一度10問に挑戦", use_container_width=True):
         start_ten_question_round(qdf, direction, history, prefer_weak)
         st.rerun()
@@ -768,19 +867,7 @@ if mode == CARD_MODE:
         render_score_dashboard(history, df, user_name)
 
     with tab_weak:
-        st.subheader("苦手ランキング")
-        if len(history):
-            g = history.groupby("word").agg(
-                attempts=("result", "count"),
-                correct=("result", lambda s: (s == "correct").sum()),
-                wrong=("result", lambda s: (s != "correct").sum()),
-            ).reset_index()
-            g["正解率"] = (g["correct"] / g["attempts"] * 100).round(1)
-            scores = priority_scores(df, history)
-            g["優先度"] = g["word"].map(scores).fillna(1.0)
-            st.dataframe(g.sort_values(["優先度", "正解率", "attempts"], ascending=[False, True, False]), use_container_width=True, hide_index=True)
-        else:
-            st.write("まだデータがありません。")
+        render_weak_ranking(history, df)
 
     with tab_add:
         st.subheader("単語追加")
@@ -791,7 +878,7 @@ if mode == CARD_MODE:
 
     with tab_words:
         st.subheader("単語リスト")
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        render_word_list(df)
 
     st.stop()
 
@@ -879,19 +966,7 @@ with tab_score:
         st.rerun()
 
 with tab_weak:
-    st.subheader("苦手ランキング")
-    if len(history):
-        g = history.groupby("word").agg(
-            attempts=("result", "count"),
-            correct=("result", lambda s: (s == "correct").sum()),
-            wrong=("result", lambda s: (s != "correct").sum()),
-        ).reset_index()
-        g["正解率"] = (g["correct"] / g["attempts"] * 100).round(1)
-        scores = priority_scores(df, history)
-        g["優先度"] = g["word"].map(scores).fillna(1.0)
-        st.dataframe(g.sort_values(["優先度", "正解率", "attempts"], ascending=[False, True, False]), use_container_width=True, hide_index=True)
-    else:
-        st.write("まだデータがありません。")
+    render_weak_ranking(history, df)
 
 with tab_add:
     st.subheader("単語追加")
@@ -936,4 +1011,4 @@ with tab_quality:
 
 with tab_words:
     st.subheader("単語リスト")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    render_word_list(df)
