@@ -222,11 +222,31 @@ def apply_mobile_styles():
             border: 1px solid #e4e7ec;
             border-radius: 8px;
             background: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            scrollbar-color: #cbd5e1 transparent;
+            scrollbar-width: thin;
+        }
+        .app-table-frame::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .app-table-frame::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .app-table-frame::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
         }
         .app-table-frame table {
             width: 100%;
+            border: 0;
             border-collapse: collapse;
             font-size: 0.9rem;
+        }
+        .app-table-frame thead,
+        .app-table-frame tbody,
+        .app-table-frame tr {
+            border: 0;
         }
         .app-table-frame th,
         .app-table-frame td {
@@ -269,6 +289,7 @@ def apply_mobile_styles():
             background: #f8fafc;
             color: #526078;
             font-weight: 700;
+            border-bottom: 1px solid #e4e7ec;
         }
         .app-table-frame tr:last-child td {
             border-bottom: 0;
@@ -295,12 +316,29 @@ def apply_mobile_styles():
     )
 
 
-def render_app_table(df, height=320, wide=False):
+def render_app_table(df, height=320, wide=False, column_widths=None):
     if df.empty:
         st.write("表示するデータがありません。")
         return
     safe_df = df.reset_index(drop=True).fillna("")
-    html_table = safe_df.to_html(index=False, escape=True, classes="app-table")
+    colgroup = ""
+    if column_widths:
+        widths = []
+        for column in safe_df.columns:
+            width = column_widths.get(column, "auto")
+            widths.append(f'<col style="width: {html.escape(str(width), quote=True)};">')
+        colgroup = f"<colgroup>{''.join(widths)}</colgroup>"
+
+    headers = "".join(f"<th>{html.escape(str(column))}</th>" for column in safe_df.columns)
+    rows = []
+    for _, row in safe_df.iterrows():
+        cells = "".join(f"<td>{html.escape(str(row[column]))}</td>" for column in safe_df.columns)
+        rows.append(f"<tr>{cells}</tr>")
+    html_table = (
+        f'<table class="app-table">{colgroup}'
+        f"<thead><tr>{headers}</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
     frame_class = "app-table-wide" if wide else "app-table-wrap"
     st.markdown(
         f'<div class="app-table-frame {frame_class}" style="--table-height: {height}px;">{html_table}</div>',
@@ -337,7 +375,11 @@ def render_weak_ranking(history, words_df):
         "correct": "正解",
         "wrong": "ミス",
     })
-    render_app_table(ranking[["単語", "回数", "正解", "ミス", "正解率", "優先度"]], height=320)
+    render_app_table(
+        ranking[["単語", "回数", "正解", "ミス", "正解率", "優先度"]],
+        height=320,
+        column_widths={"単語": "34%", "回数": "12%", "正解": "12%", "ミス": "12%", "正解率": "15%", "優先度": "15%"},
+    )
 
 
 def render_word_list(words_df):
@@ -352,7 +394,22 @@ def render_word_list(words_df):
         "example_ja": "例文訳",
         "ipa": "発音",
     })
-    render_app_table(display_df, height=360, wide=True)
+    render_app_table(
+        display_df,
+        height=360,
+        wide=True,
+        column_widths={
+            "単語": "140px",
+            "意味": "180px",
+            "許容表現": "220px",
+            "例文": "360px",
+            "メモ": "220px",
+            "レベル": "80px",
+            "品詞": "100px",
+            "例文訳": "360px",
+            "発音": "120px",
+        },
+    )
 
 
 def render_login():
@@ -632,7 +689,20 @@ def render_score_dashboard(history, words_df, user_name):
         if due_table.empty:
             st.write("復習待ちの単語はありません。")
         else:
-            render_app_table(due_table, height=280)
+            render_app_table(
+                due_table,
+                height=280,
+                column_widths={
+                    "単語": "16%",
+                    "意味": "25%",
+                    "レベル": "8%",
+                    "前回結果": "12%",
+                    "復習予定日": "14%",
+                    "期限超過": "9%",
+                    "解答数": "8%",
+                    "ミス回数": "8%",
+                },
+            )
 
     with st.expander("レベル別の正解率", expanded=True):
         level_history = h.merge(words_df[["word", "level"]], on="word", how="left")
@@ -642,13 +712,17 @@ def render_score_dashboard(history, words_df, user_name):
         ).reset_index()
         level_stats["正解率"] = (level_stats["正解数"] / level_stats["解答数"] * 100).map(format_percent)
         level_stats["level"] = level_stats["level"].fillna("追加CSV")
-        render_app_table(level_stats.sort_values("level").rename(columns={"level": "レベル"}), height=180)
+        render_app_table(
+            level_stats.sort_values("level").rename(columns={"level": "レベル"}),
+            height=180,
+            column_widths={"レベル": "25%", "解答数": "25%", "正解数": "25%", "正解率": "25%"},
+        )
 
     weak = h[h["result"].ne("correct")]
     if len(weak):
         st.write("よく間違える単語")
         weak_top = weak.groupby("word").size().reset_index(name="ミス回数").sort_values("ミス回数", ascending=False).head(5)
-        render_app_table(weak_top.rename(columns={"word": "単語"}), height=220)
+        render_app_table(weak_top.rename(columns={"word": "単語"}), height=220, column_widths={"単語": "72%", "ミス回数": "28%"})
 
     st.write("最近の履歴")
     recent = h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]]
@@ -657,7 +731,7 @@ def render_score_dashboard(history, words_df, user_name):
         "result": "結果",
         "direction": "方向",
         "next_review": "次回復習",
-    }).reset_index(drop=True), height=240)
+    }).reset_index(drop=True), height=240, column_widths={"単語": "32%", "結果": "16%", "方向": "24%", "次回復習": "28%"})
 
 
 def render_quality_panel():
@@ -673,7 +747,7 @@ def render_quality_panel():
     level_df = pd.DataFrame(
         [{"レベル": level, "語数": count} for level, count in summary["level_counts"].items()]
     )
-    render_app_table(level_df, height=180)
+    render_app_table(level_df, height=180, column_widths={"レベル": "50%", "語数": "50%"})
 
     if issue_df.empty:
         st.success("大きな問題は見つかりませんでした。")
@@ -682,8 +756,9 @@ def render_quality_panel():
     issue_types = ["すべて"] + sorted(issue_df["type"].dropna().unique().tolist())
     selected_type = st.selectbox("問題タイプ", issue_types)
     filtered = issue_df if selected_type == "すべて" else issue_df[issue_df["type"].eq(selected_type)]
+    filtered = filtered.rename(columns={"row": "行", "word": "単語", "type": "種類", "issue": "内容"})
     st.caption(f"{len(filtered)}件を表示中")
-    render_app_table(filtered, height=320)
+    render_app_table(filtered, height=320, column_widths={"行": "56px", "単語": "120px", "種類": "88px", "内容": "auto"})
 
 
 st.set_page_config(page_title="TOEIC入力式単語練習", layout="centered")
