@@ -225,13 +225,14 @@ def apply_mobile_styles():
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
             scrollbar-color: #cbd5e1 transparent;
             scrollbar-width: thin;
+            overscroll-behavior: contain;
         }
         .app-table-frame::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         .app-table-frame::-webkit-scrollbar-track {
-            background: transparent;
+            background: #ffffff;
         }
         .app-table-frame::-webkit-scrollbar-thumb {
             background: #cbd5e1;
@@ -240,7 +241,8 @@ def apply_mobile_styles():
         .app-table-frame table {
             width: 100%;
             border: 0;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             font-size: 0.9rem;
         }
         .app-table-frame thead,
@@ -285,11 +287,13 @@ def apply_mobile_styles():
         .app-table-frame th {
             position: sticky;
             top: 0;
-            z-index: 1;
-            background: #f8fafc;
+            z-index: 5;
+            background: #f8fafc !important;
+            background-clip: padding-box;
             color: #526078;
             font-weight: 700;
             border-bottom: 1px solid #e4e7ec;
+            box-shadow: 0 1px 0 #e4e7ec;
         }
         .app-table-frame tr:last-child td {
             border-bottom: 0;
@@ -377,7 +381,7 @@ def render_weak_ranking(history, words_df):
     })
     render_app_table(
         ranking[["単語", "回数", "正解", "ミス", "正解率", "優先度"]],
-        height=320,
+        height=300,
         column_widths={"単語": "34%", "回数": "12%", "正解": "12%", "ミス": "12%", "正解率": "15%", "優先度": "15%"},
     )
 
@@ -396,7 +400,7 @@ def render_word_list(words_df):
     })
     render_app_table(
         display_df,
-        height=360,
+        height=330,
         wide=True,
         column_widths={
             "単語": "140px",
@@ -691,7 +695,7 @@ def render_score_dashboard(history, words_df, user_name):
         else:
             render_app_table(
                 due_table,
-                height=280,
+                height=260,
                 column_widths={
                     "単語": "16%",
                     "意味": "25%",
@@ -714,7 +718,7 @@ def render_score_dashboard(history, words_df, user_name):
         level_stats["level"] = level_stats["level"].fillna("追加CSV")
         render_app_table(
             level_stats.sort_values("level").rename(columns={"level": "レベル"}),
-            height=180,
+            height=160,
             column_widths={"レベル": "25%", "解答数": "25%", "正解数": "25%", "正解率": "25%"},
         )
 
@@ -722,7 +726,7 @@ def render_score_dashboard(history, words_df, user_name):
     if len(weak):
         st.write("よく間違える単語")
         weak_top = weak.groupby("word").size().reset_index(name="ミス回数").sort_values("ミス回数", ascending=False).head(5)
-        render_app_table(weak_top.rename(columns={"word": "単語"}), height=220, column_widths={"単語": "72%", "ミス回数": "28%"})
+        render_app_table(weak_top.rename(columns={"word": "単語"}), height=190, column_widths={"単語": "72%", "ミス回数": "28%"})
 
     st.write("最近の履歴")
     recent = h.sort_values("timestamp_dt", ascending=False).head(8)[["word", "result", "direction", "next_review"]]
@@ -731,7 +735,7 @@ def render_score_dashboard(history, words_df, user_name):
         "result": "結果",
         "direction": "方向",
         "next_review": "次回復習",
-    }).reset_index(drop=True), height=240, column_widths={"単語": "32%", "結果": "16%", "方向": "24%", "次回復習": "28%"})
+    }).reset_index(drop=True), height=220, column_widths={"単語": "32%", "結果": "16%", "方向": "24%", "次回復習": "28%"})
 
 
 def render_quality_panel():
@@ -747,7 +751,7 @@ def render_quality_panel():
     level_df = pd.DataFrame(
         [{"レベル": level, "語数": count} for level, count in summary["level_counts"].items()]
     )
-    render_app_table(level_df, height=180, column_widths={"レベル": "50%", "語数": "50%"})
+    render_app_table(level_df, height=150, column_widths={"レベル": "50%", "語数": "50%"})
 
     if issue_df.empty:
         st.success("大きな問題は見つかりませんでした。")
@@ -758,7 +762,7 @@ def render_quality_panel():
     filtered = issue_df if selected_type == "すべて" else issue_df[issue_df["type"].eq(selected_type)]
     filtered = filtered.rename(columns={"row": "行", "word": "単語", "type": "種類", "issue": "内容"})
     st.caption(f"{len(filtered)}件を表示中")
-    render_app_table(filtered, height=320, column_widths={"行": "56px", "単語": "120px", "種類": "88px", "内容": "auto"})
+    render_app_table(filtered, height=300, column_widths={"行": "56px", "単語": "120px", "種類": "88px", "内容": "auto"})
 
 
 st.set_page_config(page_title="TOEIC入力式単語練習", layout="centered")
@@ -862,7 +866,7 @@ if mode == TEN_QUESTION_MODE and st.session_state.get("ten_finished"):
             "result": "結果",
             "user_answer": "回答",
         })
-        render_app_table(result_df, height=260)
+        render_app_table(result_df, height=220)
     if st.button("もう一度10問に挑戦", use_container_width=True):
         start_ten_question_round(qdf, direction, history, prefer_weak)
         st.rerun()
