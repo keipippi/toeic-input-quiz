@@ -336,6 +336,11 @@ def apply_mobile_styles():
         .app-table-plain tr:last-child td {
             border-bottom: 0;
         }
+        div[data-testid="stExpander"] .app-table-frame,
+        div[data-testid="stExpander"] .app-table-plain {
+            margin-top: -0.35rem;
+            margin-bottom: -0.15rem;
+        }
         @media (max-width: 640px) {
             .block-container {
                 padding-left: 0.85rem;
